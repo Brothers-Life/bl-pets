@@ -1,0 +1,595 @@
+/* ══════════════════════════════════════════════════════════════════════
+   bl_ui — l'habillage des composants de tablette (components.js).
+
+   Les JETONS ne sont PAS définis ici : ils viennent de la page hôte
+   (`tokens.css` de la tablette entreprise, son équivalent côté gang). Ce
+   fichier ne fait que les consommer. Deux tablettes partagent donc la même
+   grammaire sans partager leur palette — et une tablette qui change d'accent
+   n'a rien à modifier ici.
+
+   Jetons attendus : --text, --muted, --line, --accent, --accent-ink,
+   --surface, --radius-sm, --radius-md, --sp-1..--sp-4, --danger, --ok.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Section ─────────────────────────────────────────────────────────── */
+
+.section-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-2);
+}
+
+.section-title {
+    font-weight: 650;
+    font-size: 13px;
+}
+
+.section-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+/* ── Tuile de statistique ────────────────────────────────────────────── */
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--sp-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    min-width: 0;
+}
+
+.stat-value {
+    font-size: 19px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    /* Un montant long ne doit pas élargir la tuile et casser la grille. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-label {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.stat-hint {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.stat-ok .stat-value { color: var(--ok, #49d07f); }
+.stat-danger .stat-value { color: var(--danger, #ff5a52); }
+
+/* ── Ligne de liste ──────────────────────────────────────────────────── */
+
+.listrow {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) 0;
+}
+
+.listrow + .listrow {
+    border-top: 1px solid var(--line);
+}
+
+.listrow-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.listrow-title {
+    font-size: 13px;
+    font-weight: 550;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.listrow-detail {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.listrow-right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex: none;
+}
+
+/* ── Champ ───────────────────────────────────────────────────────────── */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+}
+
+.field-hint {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* ── Pastille ────────────────────────────────────────────────────────── */
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, .08);
+    color: var(--text);
+}
+
+.tag-accent { background: var(--accent); color: var(--accent-ink); }
+.tag-ok { background: rgba(73, 208, 127, .18); color: #8fdb9c; }
+.tag-danger { background: rgba(255, 90, 82, .18); color: #ffa9a4; }
+
+/* ── Alerte ──────────────────────────────────────────────────────────── */
+
+.alert {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--radius-sm);
+    /* L'arête colorée porte la nature du message : un aplat saturé sur toute
+       la largeur écraserait tout ce qui l'entoure. */
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 255, 255, .04);
+}
+
+.alert-title {
+    font-size: 12.5px;
+    font-weight: 650;
+}
+
+.alert-message {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.alert-danger { border-left-color: var(--danger, #ff5a52); }
+.alert-ok { border-left-color: var(--ok, #49d07f); }
+
+/* ── État vide ───────────────────────────────────────────────────────── */
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-4) var(--sp-3);
+    text-align: center;
+}
+
+.empty-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.empty-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+    max-width: 42ch;
+}
+
+/* ── Squelette de chargement ─────────────────────────────────────────── */
+
+.skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0;
+}
+
+.skeleton-row {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, .05) 25%,
+        rgba(255, 255, 255, .10) 37%,
+        rgba(255, 255, 255, .05) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-sweep 1.4s ease infinite;
+}
+
+/* Les barres décroissent : une pile de barres identiques ressemble à un
+   tableau chargé, pas à une attente. */
+.skeleton-row:nth-child(2) { width: 82%; }
+.skeleton-row:nth-child(3) { width: 64%; }
+
+@keyframes skeleton-sweep {
+    from { background-position: 100% 50%; }
+    to { background-position: 0 50%; }
+}
+
+/* ── Confirmation en ligne ───────────────────────────────────────────── */
+
+.inline-confirm {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--danger, #ff5a52);
+    background: rgba(255, 90, 82, .08);
+}
+
+.inline-confirm-text {
+    flex: 1;
+    font-size: 12.5px;
+}
+
+.inline-confirm-actions {
+    display: flex;
+    gap: var(--sp-2);
+    flex: none;
+}
+
+/* ── Carte média ─────────────────────────────────────────────────────── */
+
+.media {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) 0;
+}
+
+.media + .media {
+    border-top: 1px solid var(--line);
+}
+
+/* Rapport 16/9 figé : les affiches arrivent dans toutes les tailles, et une
+   liste dont chaque vignette a sa hauteur ne se parcourt pas. */
+.media-frame {
+    flex: none;
+    width: 96px;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: rgba(255, 255, 255, .05);
+    display: grid;
+    place-items: center;
+}
+
+.media-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.media-empty {
+    font-size: 10.5px;
+    color: var(--muted);
+    text-align: center;
+    padding: 0 var(--sp-1);
+}
+
+.media-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.media-title {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.media-detail {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.media-actions {
+    display: flex;
+    gap: var(--sp-2);
+    flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-row { animation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   INTERRUPTEURS GROUPÉS (Tablet.toggle / Tablet.toggleGroup)
+
+   Ce qu'il remplace : dix-huit cases à cocher alignées en bloc, sans
+   explication. Personne ne savait ce qu'ouvrait « Coffre » au juste, et le
+   formulaire se lisait comme un inventaire plutôt que comme un choix.
+
+   PARTI PRIS. Une ligne = une permission, avec son intitulé et ce qu'elle
+   ouvre vraiment. L'interrupteur est à droite, aligné : l'œil descend la
+   colonne des états sans relire les libellés.
+--------------------------------------------------------------------------- */
+
+.perm-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+}
+
+.perm-presets {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.perm-group {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-3) var(--sp-3);
+    margin-bottom: var(--sp-3);
+}
+
+.perm-group-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: var(--sp-2);
+}
+
+.perm-group-name {
+    font-weight: 650;
+    font-size: 13px;
+}
+
+/* Le compteur passe AVANT le bouton et pousse celui-ci à droite : il se lit
+   avec le nom du groupe, pas comme une étiquette du bouton. */
+.perm-group-count {
+    margin-right: auto;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.perm-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) 0;
+    cursor: pointer;
+}
+
+.perm-row + .perm-row {
+    border-top: 1px solid var(--line);
+}
+
+.perm-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.perm-label {
+    font-size: 13px;
+    font-weight: 550;
+}
+
+/* L'explication est le vrai apport du lot B : elle dit ce que la permission
+   ouvre, là où l'intitulé seul laissait deviner. */
+.perm-help {
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+/* ── L'interrupteur ─────────────────────────────────────────────────────
+   La case native est conservée (elle porte l'état, le focus clavier et le
+   `change`), mais rendue invisible : c'est la piste qui est peinte. Une case
+   masquée par `display: none` sortirait de la navigation au clavier. */
+.switch {
+    position: relative;
+    flex: none;
+    width: 38px;
+    height: 22px;
+}
+
+.switch input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .12);
+    transition: background 120ms ease;
+    pointer-events: none;
+}
+
+.switch-track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 120ms ease;
+}
+
+.switch input:checked + .switch-track {
+    background: var(--accent);
+}
+
+.switch input:checked + .switch-track::after {
+    transform: translateX(16px);
+}
+
+.switch input:focus-visible + .switch-track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.switch input:disabled + .switch-track {
+    opacity: .5;
+}
+
+.switch input:disabled {
+    cursor: default;
+}
+
+.btn-sm {
+    padding: 3px 9px;
+    font-size: 11.5px;
+}
+
+/* ── Planning : frise 24 h et grille de semaine ───────────────────────── */
+
+.timeline {
+    margin: var(--sp-2) 0 var(--sp-3);
+}
+
+.tl-ruler {
+    position: relative;
+    height: 14px;
+}
+
+.tl-ruler span {
+    position: absolute;
+    top: 0;
+    font-size: 10.5px;
+    color: var(--muted);
+    /* Les bornes 0 h et 24 h débordent sinon de la frise ; le décalage les
+       ramène dedans sans fausser les repères intermédiaires. */
+    transform: translateX(-50%);
+}
+
+.tl-track {
+    position: relative;
+    height: 34px;
+    background: rgba(255, 255, 255, .04);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.tl-grid i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, .05);
+}
+
+.tl-slot {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    /* Un creneau court n'a la place que de quelques lettres : sans coupure
+       nette, son libelle deborde sur le creneau voisin. */
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    padding: 0 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.tl-a { background: var(--accent); color: var(--accent-ink); }
+.tl-b { background: rgba(79, 184, 216, .85); color: #06222b; }
+
+/* Le staff est RAYÉ plutôt que d'une autre couleur : une couleur de plus se
+   lirait comme un troisième annonceur, alors qu'il s'agit d'un statut. */
+.tl-locked {
+    background: repeating-linear-gradient(45deg,
+        rgba(255, 255, 255, .16), rgba(255, 255, 255, .16) 6px,
+        rgba(255, 255, 255, .07) 6px, rgba(255, 255, 255, .07) 12px);
+    color: var(--text);
+    cursor: default;
+}
+
+.tl-active {
+    box-shadow: inset 0 0 0 2px #fff;
+}
+
+.tl-now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, .7);
+    pointer-events: none;
+}
+
+.tl-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.tl-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: -1px;
+}
+
+.weekgrid {
+    display: grid;
+    grid-template-columns: 34px repeat(7, 1fr);
+    gap: 3px;
+    margin: var(--sp-2) 0 var(--sp-3);
+}
+
+.wg-head {
+    font-size: 10.5px;
+    color: var(--muted);
+    text-align: center;
+    padding-bottom: 2px;
+}
+
+.wg-hour {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    padding-right: 6px;
+    line-height: 18px;
+}
+
+.wg-cell {
+    height: 18px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, .04);
+}
+
+.wg-a { background: var(--accent); }
+.wg-b { background: rgba(79, 184, 216, .8); }
+.wg-locked { background: rgba(255, 255, 255, .16); }

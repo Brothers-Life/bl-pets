@@ -1,0 +1,773 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Composants
+
+   Chaque bloc ci-dessous porte ses états : repos, survol, actif,
+   désactivé, focus clavier. Aucune valeur brute — tout vient de
+   tokens.css. Le mouvement reste discret : transitions de --dur-fast
+   sur les changements d'état, --dur-slow pour les apparitions. Seule
+   exception : le skeleton, dont le rôle est justement de pulser.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Carte ────────────────────────────────────────────────────────────
+   Le conteneur générique de tout onglet : un titre, éventuellement des
+   actions à hauteur du titre (pas empilées dessous, sinon il faut lire
+   toute la carte pour trouver le bouton), un contenu libre. */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    animation: card-in var(--dur-slow) var(--ease) backwards;
+}
+
+@keyframes card-in {
+    from { opacity: 0; transform: translateY(var(--sp-1)); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-4);
+}
+
+.card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.card-title h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-subtitle);
+    font-weight: var(--fw-bold);
+    color: var(--text);
+}
+
+/* La ligne sous le titre dit ce que la carte fait, pas ce qu'elle est. */
+.card-title p {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+}
+
+.card-foot {
+    font-size: var(--fs-caption);
+    color: var(--muted-2);
+    line-height: 1.45;
+}
+
+/* ── Tuile de statistique ────────────────────────────────────────────
+   Répétée en grille dans les en-têtes d'onglet : un libellé, une valeur
+   qui doit s'aligner comme n'importe quel montant de tableau. */
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+/* La donnée qu'on vient chercher (solde, total) porte l'accent : seule
+   variante de sens sur un composant qui autrement reste neutre. */
+.stat.accent { border-color: var(--accent); }
+.stat.accent .stat-value { color: var(--accent); }
+
+.stat-label {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-value {
+    font-size: var(--fs-title);
+    font-weight: var(--fw-bold);
+    color: var(--text);
+}
+
+/* ── Tableau ──────────────────────────────────────────────────────────
+   Grille financière : en-têtes discrets, lignes filetées, montants en
+   .num alignés à droite pour se comparer d'un coup d'œil. */
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-body);
+}
+
+.table th,
+.table td {
+    padding: var(--sp-2) var(--sp-3);
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.table th {
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table tbody tr {
+    transition: background var(--dur-fast) var(--ease);
+}
+
+.table tbody tr:hover { background: var(--panel-2); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* Colonnes de montants : alignées à droite, chasse fixe. font-mono et
+   tabular-nums sont déjà posés globalement sur .num dans base.css. */
+.table .num { text-align: right; }
+
+/* ── Ligne de liste ───────────────────────────────────────────────────
+   Le motif dense qui porte employés, historique, grades : une identité
+   à gauche, un statut ou une valeur à droite. */
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
+    transition: background var(--dur-fast) var(--ease);
+}
+
+.row:hover { background: var(--panel-2); }
+.row + .row { border-top: 1px solid var(--line); }
+
+/* La ligne entière ouvre un panneau (tiroir de grade, détail de paie) :
+   le curseur doit l'annoncer avant que le clic ne le fasse. */
+.row-clickable { cursor: pointer; }
+.row-clickable:hover { background: var(--panel-3); }
+
+.row-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.row-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.row-sub {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* font-mono + tabular-nums déjà posés sur .row-value dans base.css. */
+.row-value {
+    margin-left: auto;
+    font-weight: var(--fw-bold);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.row-value.pos { color: var(--ok); }
+.row-value.neg { color: var(--danger); }
+
+/* ── Badge ────────────────────────────────────────────────────────────
+   Neutre par défaut ; les variantes de sens ne servent jamais à
+   décorer une ligne — seulement à qualifier un statut réel. */
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 2px var(--sp-2);
+    border-radius: 100px;
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    line-height: 1.6;
+    background: var(--panel-3);
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.tag-accent { background: var(--accent-soft); color: var(--accent); }
+.tag-ok { background: var(--ok-soft); color: var(--ok); }
+.tag-warn { background: var(--warn-soft); color: var(--warn); }
+.tag-danger { background: var(--danger-soft); color: var(--danger); }
+
+/* ── Bouton ───────────────────────────────────────────────────────────
+   Trois voix : primaire (l'action qu'on vient chercher sur l'écran),
+   discrète (tout le reste), dangereuse (ce qui détruit ou retire). Le
+   désactivé doit se voir désactivé — c'est souvent la seule chose qui
+   empêche un clic sur une action impossible (coffre insuffisant,
+   permission absente). */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    padding: var(--sp-2) var(--sp-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease),
+                border-color var(--dur-fast) var(--ease),
+                filter var(--dur-fast) var(--ease),
+                color var(--dur-fast) var(--ease);
+    white-space: nowrap;
+}
+
+.btn:hover { background: var(--panel-3); }
+.btn:active { filter: brightness(0.94); }
+
+.btn:disabled {
+    background: var(--panel-2);
+    color: var(--muted-2);
+    border-color: var(--line);
+    cursor: default;
+    filter: none;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover { filter: brightness(1.08); }
+
+.btn-primary:disabled {
+    background: var(--panel-2);
+    color: var(--muted-2);
+    border-color: var(--line);
+    filter: none;
+}
+
+.btn-quiet {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--muted);
+}
+
+.btn-quiet:hover {
+    background: var(--panel-2);
+    color: var(--text);
+    border-color: var(--line-strong);
+}
+
+.btn-quiet:disabled {
+    color: var(--muted-2);
+    background: transparent;
+    border-color: var(--line);
+}
+
+/* Bouton d'un groupe de bascule (échelles d'un graphique) quand il porte la
+   valeur affichée. C'est un ÉTAT, pas un appel au clic : il se distingue par
+   son cadre accentué, sans emprunter le remplissage d'une action primaire,
+   qui laisserait croire qu'il reste quelque chose à valider. */
+.btn-quiet.is-active {
+    background: var(--panel-3);
+    color: var(--text);
+    border-color: var(--accent);
+}
+
+.btn-danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-color: transparent;
+}
+
+.btn-danger:hover { background: var(--danger-strong); }
+
+.btn-danger:disabled {
+    background: var(--panel-2);
+    color: var(--muted-2);
+}
+
+/* Le contour :focus-visible générique de base.css couvre déjà .btn ;
+   on ne le redéfinit pas ici. */
+
+/* ── Champ ────────────────────────────────────────────────────────────
+   Saisies de texte, sélection, case à cocher — même grammaire que le
+   reste : fond panel, filet, accent au focus. */
+
+.field-label {
+    display: block;
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    color: var(--muted);
+    letter-spacing: 0.01em;
+    margin-bottom: var(--sp-1);
+}
+
+.field-input,
+.field-select {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: var(--radius-md);
+    padding: var(--sp-2) var(--sp-3);
+    font-family: inherit;
+    font-size: var(--fs-body);
+    outline: none;
+    transition: border-color var(--dur-fast) var(--ease);
+}
+
+.field-input::placeholder { color: var(--muted-2); }
+
+/* `appearance: none` retire la fleche native avec le reste du chrome : on la
+   redessine, sinon rien ne distingue une liste deroulante d'un champ texte. */
+.field-select,
+select.field-input {
+    padding-right: var(--sp-6);
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) calc(50% + 2px),
+        calc(100% - 13px) calc(50% + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.field-input:focus,
+.field-select:focus { border-color: var(--accent); }
+
+.field-input:disabled,
+.field-select:disabled {
+    color: var(--muted-2);
+    background: var(--panel);
+    cursor: default;
+}
+
+textarea.field-input {
+    resize: vertical;
+    min-height: 62px;
+    line-height: 1.45;
+}
+
+/* Montant saisi : même chasse fixe que les montants affichés, pour que
+   ce qu'on tape se compare visuellement à ce qu'on lit. */
+.field-input.num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.checkline {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.checkline input {
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* ── Barre de progression ────────────────────────────────────────────
+   Un objectif de chiffre d'affaires, une jauge de coffre : le
+   remplissage transitionne, la piste reste fixe. */
+
+.meter {
+    height: var(--sp-2);
+    background: var(--panel-3);
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.meter-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: 100px;
+    /* --dur-slow : le remplissage est une donnée qui arrive, pas un
+       contrôle qu'on manipule — une transition plus longue que
+       --dur-fast se voit venir sans distraire. */
+    transition: width var(--dur-slow) var(--ease);
+}
+
+.meter-fill.warn { background: var(--warn); }
+.meter-fill.danger { background: var(--danger); }
+
+/* ── État vide ────────────────────────────────────────────────────────
+   Une entreprise neuve n'a ni chiffre d'affaires ni employés : six
+   cadres vides donnent l'impression d'une tablette cassée. Ce
+   composant porte une icône, une phrase qui dit ce qui manque, et
+   éventuellement une action — jamais un rectangle nu. */
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-7) var(--sp-4);
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty svg {
+    color: var(--line-strong);
+    margin-bottom: var(--sp-1);
+}
+
+.empty-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-subtitle);
+    font-weight: var(--fw-bold);
+    color: var(--text);
+}
+
+.empty-hint {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    max-width: 280px;
+    line-height: 1.4;
+}
+
+.empty .btn { margin-top: var(--sp-2); }
+
+/* Etat vide encastré dans une carte : plus discret, une ligne, sans
+   grande icône — la carte porte déjà son propre cadre. */
+.card .empty {
+    padding: var(--sp-4) 0 var(--sp-1);
+    gap: var(--sp-1);
+}
+
+.card .empty-title { font-size: var(--fs-body); }
+.card .empty-hint { font-size: var(--fs-caption); }
+
+/* ── Squelette de chargement ──────────────────────────────────────────
+   Seule exception au mouvement discret : son rôle est justement de
+   pulser tant que la donnée n'est pas arrivée. */
+
+.skeleton {
+    background: var(--panel-2);
+    border-radius: var(--radius-sm);
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ── Toast ────────────────────────────────────────────────────────────
+   Notification transitoire, empilée, avec une barre de temporisation
+   qui montre le temps qu'il reste avant disparition. */
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    max-width: 360px;
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+    animation: toast-in var(--dur-slow) var(--ease);
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(calc(-1 * var(--sp-4))); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.toast.ok { border-left-color: var(--ok); }
+.toast.warn { border-left-color: var(--warn); }
+.toast.error { border-left-color: var(--danger); }
+
+.toast-bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent);
+    animation: toast-bar 5s linear forwards;
+}
+
+.toast.ok .toast-bar { background: var(--ok); }
+.toast.warn .toast-bar { background: var(--warn); }
+.toast.error .toast-bar { background: var(--danger); }
+
+@keyframes toast-bar {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* ── Boîte de dialogue ────────────────────────────────────────────────
+   Confirmation, formulaire modal. Le fond assombrit sans masquer
+   totalement — la tablette reste visible derrière, on sait où on est. */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    animation: overlay-in var(--dur-fast) var(--ease);
+}
+
+@keyframes overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal {
+    width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: card-in var(--dur-slow) var(--ease);
+}
+
+.modal-header {
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-subtitle);
+}
+
+.modal-body {
+    padding: var(--sp-4) var(--sp-5);
+    font-size: var(--fs-body);
+    color: var(--text);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-5);
+    border-top: 1px solid var(--line);
+}
+
+/* ── Compléments ──────────────────────────────────────────────────────
+   Classes ajoutées en écrivant le tableau de bord. Elles restent ici et
+   non dans un fichier d'écran : une pastille de présence ou une précision
+   sous une statistique resserviront ailleurs. */
+
+/* Troisième ligne d'une tuile : la valeur dit combien, ceci dit de quoi.
+   Sans elle, « 3 » sur fond de « Factures en attente » laisse le lecteur
+   deviner s'il s'agit d'un nombre ou d'un montant. */
+.stat-hint {
+    font-size: var(--fs-caption);
+    color: var(--muted-2);
+}
+
+/* Conteneur de lignes. `.inset` le creuse pour le distinguer du corps de
+   la carte qui le porte. */
+.rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.rows.inset {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0 var(--sp-3);
+}
+
+/* ── Liste et formulaire d'un point ───────────────────────────────────
+   La liste montre une LIGNE par point ; ouvrir un point remplace la liste par
+   son formulaire. Tout afficher d'un coup empilait des blocs hauts où l'on ne
+   retrouvait plus rien. */
+
+.form-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--line);
+}
+
+/* Une grille plutôt qu'une rangée : à trois champs et trois boutons, une
+   rangée unique déborde dès que la tablette rétrécit. */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--sp-3);
+    align-items: end;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+}
+
+/* Le formulaire d'une fonction prend toute la ligne : il REMPLACE ce qu'il
+   modifie plutôt que de s'ajouter dessous — sinon on lit deux fois la même
+   chose, dont une périmée. */
+.row.form-row { align-items: stretch; }
+
+/* Le point sans fonction n'agit pas, et n'est visible que de qui peut le
+   compléter. Le dire évite de le croire perdu. */
+.point-none {
+    font-size: var(--fs-caption);
+    color: var(--warn);
+    padding: var(--sp-3);
+}
+
+/* Pastille de présence. La couleur seule ne suffirait pas — un daltonien
+   ne distinguerait pas en service d'absent — mais elle accompagne ici un
+   libellé écrit, jamais seule. */
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--muted-2);
+}
+
+.dot-on { background: var(--ok); }
+.dot-off { background: var(--muted-2); }
+.dot-stale { background: var(--danger); }
+
+/* Fragment en chasse fixe au fil du texte : identifiants, plaques, codes.
+   Utilisé dans les lignes d'employé, où le citizenid doit se distinguer du
+   nom qui le précède. */
+.mono {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    color: var(--muted-2);
+}
+
+/* AJOUT LOCAL (hors upstream) : le compte de resultats sous le selecteur
+   d'items de l'onglet Boutique. Meme discretion qu'un sous-titre de carte :
+   il informe sans se disputer l'attention avec le champ juste au-dessus. */
+.store-item-count {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-caption);
+    color: var(--muted);
+}
+
+/* ── Tableau de l'équipe ──────────────────────────────────────────────
+   AJOUT LOCAL (hors upstream). Défile à l'horizontale plutôt que de
+   déborder quand la tablette rétrécit : huit colonnes ne tiennent pas
+   toujours, et les écraser rendrait les montants illisibles. */
+
+.table-wrap { width: 100%; overflow-x: auto; }
+
+.team-table td { vertical-align: middle; white-space: nowrap; }
+.team-table .field-select { width: auto; min-width: 140px; }
+.team-who { display: flex; flex-direction: column; gap: 2px; }
+.team-actions { text-align: right; }
+.team-table-note { margin-top: var(--sp-2); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Planning des panneaux publicitaires (2026-09-23) ─────────────────── */
+
+.sched-host:empty {
+    display: none;
+}
+
+.sched-host {
+    margin-top: var(--sp-3);
+}
+
+.sched-list {
+    margin-bottom: var(--sp-3);
+}
+
+.sched-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+
+.sched-form textarea.field-input {
+    min-height: 54px;
+    resize: vertical;
+}
+
+.sched-days {
+    display: flex;
+    gap: var(--sp-1);
+}
+
+/* Les jours : sept pastilles cliquables plutôt qu'une liste de cases. La
+   case native reste dessous — elle porte l'état et le focus clavier. */
+.sched-day {
+    position: relative;
+    flex: 1;
+}
+
+.sched-day input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.sched-day span {
+    display: block;
+    text-align: center;
+    padding: 5px 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.sched-day input:checked + span {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.sched-day input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}

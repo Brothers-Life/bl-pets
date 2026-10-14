@@ -1,0 +1,558 @@
+/* ============================================================================
+   THEME COMMUN DES TABLETTES DE GROUPE -- servi par bl_ui
+   ============================================================================
+   Charge EN DERNIER par qbx_job_points (entreprise) et qbx_gang_points
+   (organisation), apres leurs propres feuilles : ce fichier a donc le dernier
+   mot sur la charte. C'est voulu -- les deux tablettes doivent etre le meme
+   outil, et une seule valeur changee ici les change toutes les deux.
+
+   La charte est celle du menu garage (qbx_garages) : graphite neutre, une
+   seule police, l'accent reserve a l'action et a la selection, le vert, le
+   jaune et le rouge gardes pour l'etat. Les tablettes gardent leur propre
+   vocabulaire de classes : rien de leur balisage n'a bouge.
+
+   L'organisation prend l'accent violet via <html data-ui="gang"> : meme
+   interface, mais on sait d'un coup d'oeil laquelle on a en main.
+
+   CEF FiveM = Chromium 103 : pas de :has(), pas d'imbrication CSS, pas
+   d'oklch(), pas de backdrop-filter (le jeu n'est pas dans la page).
+
+   Si bl_ui n'est pas encore demarre quand la page se charge, la tablette
+   reste lisible avec ses propres feuilles : elle retombe simplement sur son
+   ancienne charte. html/tablet/tabs.js redemande alors la feuille.
+   ========================================================================== */
+
+:root {
+    /* ── Surfaces ───────────────────────────────────────────────────── */
+    --bg: #0f0f10;
+    --panel: #171718;
+    --panel-2: #1e1e20;
+    --panel-3: #28282a;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.12);
+
+    /* ── Texte ──────────────────────────────────────────────────────── */
+    --text: #ededed;
+    --muted: #8f8f94;
+    --muted-2: #5d5d62;
+
+    /* ── Accent et sens ─────────────────────────────────────────────── */
+    --accent: #ff9628;
+    --accent-2: #ffb45e;
+    --accent-ink: #1d0e00;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --danger: #f87171;
+
+    --accent-softer: rgba(255, 150, 40, 0.06);
+    --accent-soft: rgba(255, 150, 40, 0.12);
+    --accent-glow: rgba(255, 150, 40, 0.22);
+    --accent-line: rgba(255, 150, 40, 0.45);
+
+    --ok-soft: rgba(74, 222, 128, 0.12);
+    --warn-soft: rgba(251, 191, 36, 0.14);
+    --danger-soft: rgba(248, 113, 113, 0.12);
+    --danger-strong: rgba(248, 113, 113, 0.28);
+
+    /* ── Typographie ────────────────────────────────────────────────
+       Une seule famille pour le texte, comme le menu garage : deux
+       familles sur un outil aussi dense se lisaient comme deux produits.
+       La chasse fixe reste, elle aligne les montants. */
+    --font-display: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --fs-display: 26px;
+    --fs-title: 17px;
+    --fs-subtitle: 14px;
+    --fs-body: 13.5px;
+    --fs-caption: 11.5px;
+
+    /* ── Formes ─────────────────────────────────────────────────────── */
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* L'organisation : meme charte, accent violet. */
+:root[data-ui="gang"] {
+    --accent: #a78bfa;
+    --accent-2: #c4b5fd;
+    --accent-ink: #16091f;
+    --accent-softer: rgba(167, 139, 250, 0.07);
+    --accent-soft: rgba(167, 139, 250, 0.14);
+    --accent-glow: rgba(167, 139, 250, 0.24);
+    --accent-line: rgba(167, 139, 250, 0.45);
+}
+
+/* ── Chassis ────────────────────────────────────────────────────────── */
+
+.tablet-frame {
+    background: linear-gradient(180deg, #1e2023, #0c0e10);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 40px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* Objectif et haut-parleur du boitier : memes reperes que le menu garage. */
+.tablet-frame::before {
+    content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 7px; height: 7px; border-radius: 50%; background: #050505;
+}
+.tablet-frame::after {
+    content: ''; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 4px; border-radius: 100px; background: rgba(255, 255, 255, 0.16);
+}
+
+/* La tablette passe en colonne : les onglets montent en haut.
+   L'element porte un IDENTIFIANT et aucune classe (voir index.html) : viser
+   .panel ne l'atteindrait pas. */
+#panel {
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    background: radial-gradient(70% 45% at 10% 0%, var(--accent-softer), transparent 60%), var(--bg);
+}
+
+/* ── Barre d'onglets ────────────────────────────────────────────────
+   Le "rail" vertical devient une barre horizontale. Le balisage n'a pas
+   change : ce sont les memes boutons .rail-tab, que core.js continue de
+   masquer selon les droits. */
+
+.rail {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 22px 0;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.rail-mark {
+    width: 32px; height: 32px;
+    margin: 0 12px 8px 0;
+    border-radius: var(--radius-md);
+    background: linear-gradient(145deg, var(--accent-2), var(--accent));
+    color: var(--accent-ink);
+    flex-shrink: 0;
+}
+
+.rail-tab {
+    width: auto; height: auto;
+    flex-direction: row;
+    gap: 7px;
+    padding: 11px 12px 13px;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.rail-tab:hover { background: none; color: var(--text); }
+.rail-tab .n {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+.rail-tab.active {
+    background: none;
+    color: var(--text);
+    border-bottom-color: var(--accent);
+    box-shadow: none;
+}
+.rail-tab.active svg { color: var(--accent); }
+
+/* Compteur : plus une pastille posee sur l'icone, mais une valeur a la
+   suite du libelle -- il y a la place sur une barre horizontale. */
+.rail-count {
+    position: static;
+    min-width: 0;
+    height: auto;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--muted-2);
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+.rail-tab.active .rail-count { background: var(--accent-soft); color: var(--accent); }
+
+/* Pousse la fermeture a droite. */
+.rail-spacer { flex: 1; width: auto; height: auto; }
+
+.rail-close {
+    width: 32px; height: 32px;
+    margin-bottom: 8px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    color: var(--muted);
+}
+.rail-close:hover { color: var(--text); background: var(--panel); }
+.rail-close .n { display: none; }
+
+/* Un onglet range dans « Plus » sort de la barre. [hidden] ne suffirait
+   pas : la regle display des boutons l'emporterait. */
+.rail-tab.is-overflow { display: none !important; }
+
+/* ── Bouton « Plus » ────────────────────────────────────────────────
+   La barre ne defile jamais et ne passe pas a la ligne : ce qui ne tient
+   pas va la-dedans. Voir html/tablet/tabs.js. */
+
+.more-wrap { position: relative; flex-shrink: 0; }
+
+.more-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 11px 12px 13px;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+}
+.more-btn:hover { color: var(--text); }
+.more-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+.more-btn.active svg { color: var(--accent); }
+.more-btn .c {
+    padding: 1px 6px; border-radius: 999px;
+    background: var(--panel-2); color: var(--muted-2); font-size: 11.5px;
+}
+
+.more-menu {
+    position: absolute; z-index: 60; top: calc(100% + 6px); right: 0;
+    width: 244px; padding: 6px;
+    border-radius: var(--radius-lg);
+    background: #1b1b1d;
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+}
+.more-menu button {
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    background: none; border: none; cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    text-align: left;
+}
+.more-menu button:hover { background: var(--panel-2); color: var(--text); }
+.more-menu button.active { background: var(--panel-3); color: var(--text); }
+.more-menu button.active svg { color: var(--accent); }
+.more-menu .c { margin-left: auto; color: var(--muted-2); font-size: 11.5px; }
+
+/* ── En-tete d'onglet ───────────────────────────────────────────────── */
+
+.topbar { padding: 18px 24px 0; }
+.eyebrow {
+    font-size: var(--fs-caption);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--muted);
+}
+.topbar h1, .topbar h2 { font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
+
+/* ── Recherche et filtres ───────────────────────────────────────────
+   Memes pastilles segmentees que le menu garage. */
+
+.searchrow { padding: 14px 24px 0; gap: 10px; }
+
+.filters { gap: 3px; padding: 3px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.filters button, .filters .chip {
+    height: 32px; padding: 0 13px;
+    border-radius: var(--radius-sm);
+    background: none; border: none;
+    color: var(--muted);
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap;
+}
+.filters button:hover, .filters .chip:hover { color: var(--text); }
+.filters button.active, .filters .chip.active {
+    background: var(--panel-3); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Composants ─────────────────────────────────────────────────────
+   Le balisage des onglets ne change pas : seules la forme et la couleur
+   s'alignent sur le menu garage. */
+
+.card { border-radius: var(--radius-lg); background: var(--panel); border: 1px solid var(--line); }
+.card-title h3 { font-family: var(--font-display); font-size: var(--fs-subtitle); }
+
+.stat { background: var(--panel); border-radius: var(--radius-lg); padding: 15px 17px; }
+.stat-label { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--muted); }
+.stat-value { font-size: 25px; font-weight: 700; letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+.stat-hint { font-size: 12.5px; color: var(--muted-2); }
+.stat.accent { border-color: var(--line); }
+.stat.accent .stat-value { color: var(--text); }
+
+.table th { text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--fs-caption); color: var(--muted-2); }
+.table td { font-size: var(--fs-body); }
+.table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+.btn {
+    height: 38px; padding: 0 16px;
+    border-radius: var(--radius-md);
+    font-weight: 600; font-size: 13.5px;
+}
+.btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 700; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn-quiet { background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); }
+.btn-quiet:hover { background: var(--panel-3); }
+.btn-danger { background: var(--danger-soft); border: 1px solid var(--danger-strong); color: #fca5a5; }
+
+.tag { border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+.tag-accent { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+.tag-ok { background: var(--ok-soft); border-color: rgba(74, 222, 128, 0.28); color: var(--ok); }
+.tag-warn { background: var(--warn-soft); border-color: rgba(251, 191, 36, 0.28); color: var(--warn); }
+.tag-danger { background: var(--danger-soft); border-color: var(--danger-strong); color: #fca5a5; }
+
+.row { border-radius: var(--radius-md); background: var(--panel); border: 1px solid var(--line); }
+.row-clickable:hover { border-color: var(--line-strong); }
+.row-name { font-weight: 600; }
+.row-sub { color: var(--muted); }
+.row-value { font-variant-numeric: tabular-nums; }
+
+.field-input, .field-select {
+    height: 38px; border-radius: var(--radius-md);
+    background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text);
+}
+.field-input:focus, .field-select:focus { border-color: var(--accent-line); outline: none; }
+.field-label { font-size: 12px; color: var(--muted); }
+
+.meter { background: var(--panel-3); border-radius: 999px; }
+.meter-fill { background: var(--accent); }
+
+.modal { border-radius: var(--radius-xl); background: #1b1b1d; border: 1px solid var(--line-strong); }
+.overlay { background: rgba(0, 0, 0, 0.6); }
+
+.toast { border-radius: var(--radius-lg); background: #202022; border: 1px solid var(--line-strong); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5); }
+.toast-bar { background: var(--accent); }
+
+.empty-title { color: var(--text); }
+.empty-hint { color: var(--muted); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   COMPOSITION
+
+   Ce qui suit ne change aucun balisage : les onglets posent les memes
+   elements qu'avant. Seules la densite, la forme et la hierarchie
+   s'alignent sur le menu garage -- cartes a en-tete filete, tuiles de
+   chiffres, lignes separees par un filet, pastilles segmentees.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Respiration de l'ecran ────────────────────────────────────────── */
+.view { gap: 12px; padding: 18px 24px 24px; }
+.topbar + .searchrow { padding-top: 12px; }
+
+/* ── Bandeau d'identite ───────────────────────────────────────────────
+   C'etait un grand bloc centre qui prenait le quart de l'ecran pour dire
+   un nom deja connu du joueur. Il redevient une ligne. */
+.dash-identity.card { flex-direction: row; align-items: center; gap: 14px; padding: 14px 18px; }
+.dash-identity .dash-logo { width: 40px; height: 40px; border-radius: var(--radius-md); font-size: 19px; }
+.dash-identity h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+.dash-identity .row-sub { font-size: 13px; color: var(--muted); }
+
+/* ── Onglets de reglages en deux colonnes ─────────────────────────────
+   Coffre, Operations et Paie empilent des cartes etroites : en une seule
+   colonne, la moitie droite de l'ecran restait vide et il fallait faire
+   defiler pour voir la troisieme carte.
+
+   Une grille et non des colonnes CSS : dans un conteneur qui defile, les
+   colonnes se fragmentent HORIZONTALEMENT -- une troisieme colonne
+   apparaissait hors de l'ecran, a droite. */
+/* Seuls le Coffre et les Operations s'y pretent : ce sont des cartes de
+   reglages etroites. La Paie, la Boutique et les Finances portent des
+   tableaux larges, qui deviennent illisibles sur une demi-largeur -- elles
+   restent en une colonne. */
+.view[data-panel="safe"],
+.view[data-panel="ops"] {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+/* Deux colonnes, l'ecart de .view (12 px) retire de chaque moitie.
+   Un flux et non une grille : en grille, les lignes se calaient sur une
+   hauteur trop courte et les cartes se peignaient les unes sur les autres. */
+.view[data-panel="safe"] > *,
+.view[data-panel="ops"] > * { width: calc(50% - 6px); flex: 0 0 auto; }
+/* Un tableau reste lisible : il defile plutot que de comprimer ses colonnes. */
+.table-wrap { overflow-x: auto; }
+
+/* ── Grille a deux colonnes ───────────────────────────────────────────
+   Le sujet principal a gauche (un graphique, un tableau), ce qui
+   l'accompagne a droite. Les deux colonnes s'alignent en haut : une carte
+   courte ne doit pas s'etirer pour suivre la hauteur de sa voisine. */
+/* Un flux et non une grille, pour la meme raison qu'aux onglets de
+   reglages : une ligne de grille se calait parfois sur une hauteur plus
+   courte que sa carte, qui debordait alors sur la suivante. */
+.grid2 {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    gap: 12px;
+}
+.grid2 > * { min-width: 0; flex: 1 1 340px; }
+.grid2 > *:first-child { flex: 1.55 1 460px; }
+
+/* ── Tuiles de chiffres ───────────────────────────────────────────── */
+.dash-tiles, .grid-stats { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.stat { gap: 4px; }
+.stat-label { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--muted); }
+/* La valeur revient a la police du texte : la chasse fixe faisait lire un
+   ticket de caisse la ou on attend un chiffre-cle. L'alignement des
+   colonnes reste assure par tabular-nums. */
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+    font-variant-numeric: tabular-nums;
+}
+.stat-hint { font-size: 12.5px; color: var(--muted-2); }
+
+/* ── Carte ────────────────────────────────────────────────────────────
+   En-tete filete puis contenu, au lieu d'un bloc uniforme : sur un ecran
+   qui empile cinq cartes, le filet est ce qui separe les sujets. */
+/* La marge interieure est portee par la CARTE, pas par ses enfants.
+   Sur les enfants, elle s'appliquait aussi aux champs et aux barres de
+   progression (un <select> avait 14 px de marge interne, texte coupe) ; en
+   marge exterieure, un champ en largeur 100 % debordait de 36 px. */
+.card { padding: 0 18px 16px; gap: 12px; overflow: hidden; }
+.card-head {
+    align-items: center;
+    margin: 0 -18px 2px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+}
+/* Tableaux et listes vont d'un bord a l'autre : leurs filets aussi. */
+.card > .table-wrap, .card > .table, .card > .rows.inset { margin-left: -18px; margin-right: -18px; }
+.card-foot { padding-top: 0; color: var(--muted-2); overflow-wrap: anywhere; }
+.card p, .card .row-sub, .card .stat-hint { overflow-wrap: anywhere; }
+/* .row-sub sert a DEUX choses : le sous-titre d'une ligne de liste, qui doit
+   rester sur une ligne et se couper proprement, et un paragraphe d'explication
+   pose directement dans une carte, qui lui doit s'enrouler. Le second cas se
+   reconnait a sa place : enfant direct de la carte. */
+.card > .row-sub, .card > p.row-sub, .dash-identity .row-sub {
+    display: block;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.45;
+}
+.card-title h3 { font-size: var(--fs-subtitle); font-weight: 600; }
+.card-title p { font-size: 12.5px; color: var(--muted); }
+.card-actions { gap: 6px; }
+
+/* Un tableau occupe toute la largeur de sa carte : les filets de lignes
+   doivent aller d'un bord a l'autre, pas s'arreter avant. */
+.card > .table-wrap, .card > .table { padding: 0; }
+.table th:first-child, .table td:first-child { padding-left: 18px; }
+.table th:last-child, .table td:last-child { padding-right: 18px; }
+.table th, .table td { padding-top: 11px; padding-bottom: 11px; }
+
+/* ── Listes de lignes ─────────────────────────────────────────────────
+   Le cadre dans le cadre disparait : une liste dans une carte n'a pas
+   besoin de sa propre bordure, un filet entre les lignes suffit. */
+.rows.inset { background: none; border: none; border-radius: 0; padding: 0; }
+/* Dans une carte, la liste garde la respiration de la carte : la regle
+   ci-dessus l'emporterait sinon sur le remplissage des enfants de .card. */
+.card > .rows.inset { padding: 0; }
+.rows.inset .row { padding: 11px 0; }
+.row:hover { background: none; }
+.row-clickable:hover { background: var(--panel-2); border-radius: var(--radius-sm); }
+.row-name { font-weight: 600; font-size: 13.5px; }
+.row-sub { font-size: 12.5px; color: var(--muted); }
+.row-value { font-family: var(--font-body); font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+
+/* ── Pastilles segmentees ─────────────────────────────────────────────
+   Les selecteurs d'echelle (24 h / 14 j / 12 mois) et les filtres se lisent
+   comme un seul objet a plusieurs positions, pas comme trois boutons. */
+.btn-quiet.is-active, .btn-quiet.active {
+    background: var(--panel-3);
+    color: var(--text);
+    border-color: transparent;
+}
+.card-actions .btn-quiet { height: 32px; padding: 0 13px; font-size: 13px; font-weight: 500; }
+
+/* ── Ecrans vides et alertes ─────────────────────────────────────────── */
+.empty { padding: 34px 18px; }
+.empty-title { font-size: 15px; font-weight: 600; }
+.empty-hint { font-size: 13px; }
+.chart-host { min-height: 170px; }
+.dash-alert { border-radius: var(--radius-md); font-size: 13px; }
+
+/* ── Paliers de l'organisation ────────────────────────────────────────
+   levels.css melange l'accent et un orange ecrit en dur (#c2701f) : sur la
+   tablette violette, l'ecusson et la barre viraient a l'orange en plein
+   milieu. Les deux teintes viennent maintenant de l'accent. */
+.lv-crest { background: linear-gradient(160deg, var(--accent), var(--accent-2)); }
+.lv-track-fill, .lv-bar-fill { background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+
+@media (prefers-reduced-motion: reduce) {
+    .card, .toast { animation: none; }
+}
+
+/* ── Chassis « terrain lumineux » (2026-10-12) ───────────────────────────
+   Maquette validee : mix « durci terrain » + « liseré lumineux » (Claude
+   Design, Contours de tablette, Mix A). Boitier noir mat, quatre coins
+   renforces graphite avec un rebord d'accent lumineux, grips sur les cotes,
+   ecran cerne d'un liseré a la couleur d'accent de la tablette (orange
+   entreprise, violet gang, bleu MDT -- `--accent` de chacune).
+
+   `html .tablet-frame` et non `.tablet-frame` : bl_mdt/css/layout.css,
+   qbx_job_points/css/layout.css et group.css redefinissent le chassis APRES
+   ce fichier. Une specificite plus forte le fait gagner partout sans toucher
+   a ces trois fichiers.
+
+   Sans toucher au balisage des deux tablettes : coins et grips sont des
+   images de FOND du boitier ; ::after porte les rebords nets (masque) ;
+   ::before le HALO -- les memes traits floutes dans l'image de masque
+   elle-meme, car un `filter` CSS sur le pseudo-element serait masque avec
+   lui et ne debordait jamais. */
+html .tablet-frame {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='%2325292e' d='M26 0H70A10 10 0 0 1 80 10V54A26 26 0 0 1 54 80H10A10 10 0 0 1 0 70V26A26 26 0 0 1 26 0Z'/%3E%3C/svg%3E") 0 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='%2325292e' d='M10 0H54A26 26 0 0 1 80 26V70A10 10 0 0 1 70 80H26A26 26 0 0 1 0 54V10A10 10 0 0 1 10 0Z'/%3E%3C/svg%3E") 100% 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='%2325292e' d='M10 0H54A26 26 0 0 1 80 26V70A10 10 0 0 1 70 80H26A26 26 0 0 1 0 54V10A10 10 0 0 1 10 0Z'/%3E%3C/svg%3E") 0 100% / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='%2325292e' d='M26 0H70A10 10 0 0 1 80 10V54A26 26 0 0 1 54 80H10A10 10 0 0 1 0 70V26A26 26 0 0 1 26 0Z'/%3E%3C/svg%3E") 100% 100% / 80px 80px no-repeat, repeating-linear-gradient(180deg, #2e3238 0 6px, #17191c 6px 10px) 10px 50% / 6px 80px no-repeat, repeating-linear-gradient(180deg, #2e3238 0 6px, #17191c 6px 10px) calc(100% - 10px) 50% / 6px 80px no-repeat, #111316;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), inset 0 6px 0 rgba(255, 255, 255, 0.03);
+}
+html .tablet-frame::before,
+html .tablet-frame::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    width: auto; height: auto;
+    transform: none;
+    border-radius: 0;
+    pointer-events: none;
+    background: var(--accent);
+}
+html .tablet-frame::before {
+    top: -24px; right: -24px; bottom: -24px; left: -24px;
+    opacity: 0.85;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M4 72V26A22 22 0 0 1 26 4H72'/%3E%3C/g%3E%3C/svg%3E") 4px 4px / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M8 4H54A22 22 0 0 1 76 26V72'/%3E%3C/g%3E%3C/svg%3E") calc(100% - 4px) 4px / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M4 8V54A22 22 0 0 0 26 76H72'/%3E%3C/g%3E%3C/svg%3E") 4px calc(100% - 4px) / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M8 76H54A22 22 0 0 0 76 54V8'/%3E%3C/g%3E%3C/svg%3E") calc(100% - 4px) calc(100% - 4px) / 120px 120px no-repeat, radial-gradient(closest-side, #000, transparent) 50% calc(100% - 20px) / 130px 30px no-repeat, radial-gradient(closest-side, #000, transparent) 50% 15px / 34px 34px no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M4 72V26A22 22 0 0 1 26 4H72'/%3E%3C/g%3E%3C/svg%3E") 4px 4px / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M8 4H54A22 22 0 0 1 76 26V72'/%3E%3C/g%3E%3C/svg%3E") calc(100% - 4px) 4px / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M4 8V54A22 22 0 0 0 26 76H72'/%3E%3C/g%3E%3C/svg%3E") 4px calc(100% - 4px) / 120px 120px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='6'/%3E%3C/filter%3E%3Cg transform='translate%2820 20%29'%3E%3Cpath fill='none' stroke='black' stroke-width='12' stroke-linecap='round' filter='url%28%23b%29' d='M8 76H54A22 22 0 0 0 76 54V8'/%3E%3C/g%3E%3C/svg%3E") calc(100% - 4px) calc(100% - 4px) / 120px 120px no-repeat, radial-gradient(closest-side, #000, transparent) 50% calc(100% - 20px) / 130px 30px no-repeat, radial-gradient(closest-side, #000, transparent) 50% 15px / 34px 34px no-repeat;
+}
+html .tablet-frame::after {
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M4 72V26A22 22 0 0 1 26 4H72'/%3E%3C/svg%3E") 0 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M8 4H54A22 22 0 0 1 76 26V72'/%3E%3C/svg%3E") 100% 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M4 8V54A22 22 0 0 0 26 76H72'/%3E%3C/svg%3E") 0 100% / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M8 76H54A22 22 0 0 0 76 54V8'/%3E%3C/svg%3E") 100% 100% / 80px 80px no-repeat, linear-gradient(#000, #000) 50% calc(100% - 9px) / 72px 5px no-repeat, radial-gradient(circle, #000 4px, transparent 4.5px) 50% 8px / 12px 12px no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M4 72V26A22 22 0 0 1 26 4H72'/%3E%3C/svg%3E") 0 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M8 4H54A22 22 0 0 1 76 26V72'/%3E%3C/svg%3E") 100% 0 / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M4 8V54A22 22 0 0 0 26 76H72'/%3E%3C/svg%3E") 0 100% / 80px 80px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='black' stroke-width='8' stroke-linecap='round' d='M8 76H54A22 22 0 0 0 76 54V8'/%3E%3C/svg%3E") 100% 100% / 80px 80px no-repeat, linear-gradient(#000, #000) 50% calc(100% - 9px) / 72px 5px no-repeat, radial-gradient(circle, #000 4px, transparent 4.5px) 50% 8px / 12px 12px no-repeat;
+}
+/* L'ecran passe au-dessus des coins, cerne du liseré d'accent. */
+html .tablet-frame > #panel,
+html .tablet-frame > .panel {
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 0 3px var(--accent), 0 0 30px -2px var(--accent), 0 0 60px -12px var(--accent);
+}

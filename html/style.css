@@ -1,0 +1,134 @@
+/* ══════════════════════════════════════════════════════════════════════
+   bl_pets — ce que la charte des tablettes n'a pas : jauges d'animal,
+   tuiles d'ordre, lignes d'animal.
+
+   Uniquement des jetons de css/tokens.css et bl/group.css (meme regle que
+   jg-hud/web/bl/tablet/app.css). Mise en page « reglages de telephone » de
+   jg-hud : une colonne lisible, des sections titrees (.sx), des lignes
+   « libelle a gauche / reglage a droite » (.rw).
+
+   CEF = Chromium 103 : pas de :has(), color-mix(), backdrop-filter.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* css/layout.css pose `body { display: flex }`, qui l'emporte sur l'attribut
+   hidden : sans cette regle, la tablette resterait affichee au repos. */
+body[hidden] { display: none !important; }
+
+/* Comme les reglages du HUD : plus petite que la tablette entreprise. */
+.tablet-frame { width: min(1080px, 92vw); height: min(700px, 84vh); }
+
+/* ── Rail : marque et animaux ────────────────────────────────────────── */
+
+.rail { overflow-y: auto; scrollbar-width: none; }
+.rail::-webkit-scrollbar { display: none; }
+.rail-mark { display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.rail-tab { display: flex; cursor: pointer; }
+.rail-tab .ico { font-size: 22px; line-height: 24px; height: 24px; filter: grayscale(.35); }
+.rail-tab.active .ico { filter: none; }
+.rail-tab .n { max-width: 92px; overflow: hidden; text-overflow: ellipsis; }
+.rail-sep { margin: 8px 10px 4px; padding-top: 10px; border-top: 1px solid var(--line); width: 80px;
+    font: 800 9.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted-2); text-align: center; }
+/* Etat de l'animal : pastille sur le coin de l'icone (meme place que .rail-count). */
+.rail-dot { position: absolute; top: 9px; right: 24px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--muted-2); border: 2px solid var(--rail-bg); }
+.rail-dot.out { background: var(--ok); }
+.rail-dot.injured { background: var(--danger); }
+
+/* ── Barre du haut ───────────────────────────────────────────────────── */
+
+.ghead-tag.is-out { background: var(--ok-soft); color: var(--ok); }
+.ghead-tag i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* ── Colonne de page (jg-hud, refonte 2026-10-07) ────────────────────── */
+
+.view { gap: 0; padding-top: 6px; }
+.view > * { max-width: 760px; width: 100%; margin-left: auto; margin-right: auto; }
+.pg-h { display: flex; align-items: center; gap: 14px; padding: 6px 2px 16px; }
+.pg-h-t { flex: 1; min-width: 0; }
+.pg-h h2 { margin: 0; font: 800 24px/1.2 var(--font-display); letter-spacing: -.01em; }
+.pg-h p { margin: 6px 0 0; color: var(--muted); font-size: var(--fs-caption); line-height: 1.5; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.sx { margin-bottom: 18px; }
+.sx > h4 { margin: 0 0 6px 4px; font: 800 11px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted-2); }
+.sx-list { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.sx-note { margin: 6px 4px 0; font-size: 11.5px; color: var(--muted-2); line-height: 1.45; }
+
+.rw { display: flex; align-items: center; gap: 16px; padding: 12px 14px; min-height: 52px; box-sizing: border-box; width: 100%; }
+.rw + .rw { border-top: 1px solid var(--line); }
+.rw-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rw-t b { font: 650 13.5px var(--font-body); color: var(--text); }
+.rw-t span { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.rw-c { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 8px; max-width: 60%; flex-wrap: wrap; }
+.rw-link { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 14px; padding: 12px 14px; width: 100%; cursor: pointer; }
+.rw-link + .rw-link { border-top: 1px solid var(--line); }
+.rw-link:hover { background: var(--panel-3); }
+.rw-ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--accent-softer); font-size: 20px; flex: none; }
+.chev { color: var(--muted-2); font-size: 20px; }
+
+/* ── Avatar d'animal ─────────────────────────────────────────────────── */
+
+.pet-av { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; flex: none;
+    background: var(--accent-soft); border: 1px solid var(--accent-line); }
+
+/* ── Chiffres ────────────────────────────────────────────────────────── */
+
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+
+/* ── Jauges ──────────────────────────────────────────────────────────── */
+
+.gauge { display: flex; align-items: center; gap: 10px; }
+.gauge i { display: block; width: 180px; height: 8px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
+.gauge u { display: block; height: 100%; border-radius: 4px; background: var(--ok); transition: width .4s var(--ease); }
+.gauge u.warn { background: var(--warn); }
+.gauge u.danger { background: var(--danger); }
+.gauge u.accent { background: var(--accent); }
+.gauge b { min-width: 46px; text-align: right; font: 700 12px var(--font-mono); color: var(--text); }
+/* Version courte, dans les lignes de la liste. */
+.mini { display: flex; flex-direction: column; gap: 4px; width: 92px; }
+.mini span { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted-2); }
+.mini span b { font: 700 10.5px var(--font-mono); color: var(--muted); }
+.mini i { display: block; height: 5px; border-radius: 3px; background: var(--panel-3); overflow: hidden; }
+.mini u { display: block; height: 100%; background: var(--ok); }
+.mini u.warn { background: var(--warn); }
+.mini u.danger { background: var(--danger); }
+
+/* ── Onglets de la fiche ─────────────────────────────────────────────── */
+
+.seg { display: flex; width: 100%; margin-bottom: 16px; }
+.seg button { flex: 1; }
+
+/* ── Tuiles d'ordre ──────────────────────────────────────────────────── */
+
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; }
+.tile { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 14px 8px 12px; border-radius: 12px; background: var(--panel-3); border: 1px solid var(--line); text-align: center; }
+.tile:hover { border-color: var(--accent-line); }
+.tile.on { border-color: var(--accent); background: var(--accent-soft); }
+.tile[disabled] { opacity: .4; cursor: not-allowed; }
+.tile[disabled]:hover { border-color: var(--line); }
+.tile-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-softer); font-size: 18px; margin-bottom: 2px; }
+.tile b { font-size: 13px; }
+.tile span { font-size: 10.5px; color: var(--muted); min-height: 13px; }
+
+/* ── Divers ──────────────────────────────────────────────────────────── */
+
+.count { font: 700 12px var(--font-mono); color: var(--muted); min-width: 30px; text-align: right; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.inline-form { display: flex; gap: 8px; width: 100%; align-items: center; }
+.inline-form .field-input { flex: 1; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-strong); color: var(--text); font: 500 13px var(--font-body); }
+.empty-pets { text-align: center; padding: 60px 20px; }
+.empty-pets b { display: block; font: 800 18px var(--font-display); margin-bottom: 6px; }
+.empty-pets span { color: var(--muted); font-size: var(--fs-caption); }
+.busy { pointer-events: none; opacity: .6; }
+
+.banner { margin-bottom: 14px; padding: 10px 14px; border-radius: 12px; font-size: var(--fs-caption); line-height: 1.45;
+    background: var(--accent-softer); border: 1px solid var(--accent-line); }
+.banner b { display: block; font-size: 13px; margin-bottom: 2px; }
+.banner.danger { background: var(--danger-soft); border-color: var(--danger-strong); }
+.banner.danger b { color: var(--danger); }
+
+/* Notifications : meme forme que les reglages du HUD. */
+.toast-host { position: fixed; right: 24px; bottom: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 50; pointer-events: none; }
+.toast { background: var(--panel-3); border: 1px solid var(--line-strong); border-left: 3px solid var(--accent); border-radius: var(--radius-md);
+    padding: 10px 14px; font-size: var(--fs-caption); color: var(--text); }
+.toast.error { border-left-color: var(--danger); }

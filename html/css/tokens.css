@@ -1,0 +1,103 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Jetons de la tablette d'entreprise
+
+   Source unique : aucune valeur brute ne doit apparaître ailleurs. Une
+   couleur ou une marge écrite en dur dans un composant est une valeur qui
+   dérivera le jour où on retouchera le reste.
+
+   La palette est celle d'origine. La tablette garde son identité, distincte
+   de celle du serveur (#e8720f / ClashDisplay) : c'est un outil
+   professionnel dans l'univers, pas un écran du serveur.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ── Surfaces ──────────────────────────────────────────────────────
+       Quatre niveaux, du fond vers l'avant. Ils existaient déjà mais
+       étaient appliqués irrégulièrement ; les systématiser est ce qui
+       donne la profondeur au lieu d'un aplat gris. */
+    --bg: #0b0d10;
+    --panel: #15181c;
+    --panel-2: #1c2025;
+    --panel-3: #20242a;
+
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.12);
+
+    /* ── Texte ────────────────────────────────────────────────────────
+       Trois niveaux suffisent : ce qu'on lit, ce qui accompagne, ce qui
+       n'est là que pour situer. */
+    --text: #f1f3f5;
+    --muted: #8b939c;
+    --muted-2: #5f6670;
+
+    /* ── Accent et sens ───────────────────────────────────────────────
+       Les trois dernières portent un SENS et ne servent jamais à
+       décorer : une couleur sémantique utilisée pour faire joli ne veut
+       plus rien dire le jour où elle doit alerter. */
+    --accent: #f2954a;
+    --accent-ink: #331a06;
+    --ok: #34d399;
+    --warn: #f2b354;
+    --danger: #f2545b;
+
+
+    /* ── Teintes translucides ─────────────────────────────────────────
+       Pre-calculees plutot que derivees par color-mix() : cette fonction
+       exige Chrome 111+, et une declaration non supportee est ignoree en
+       entier -- le fond disparaitrait au lieu de palir. Si une couleur de
+       base change ci-dessus, ajuster la variante correspondante ici. */
+    --accent-softer: rgba(242, 149, 74, 0.06);
+    --accent-soft: rgba(242, 149, 74, 0.15);
+    --accent-glow: rgba(242, 149, 74, 0.22);
+    --accent-line: rgba(242, 149, 74, 0.30);
+
+    --ok-soft: rgba(52, 211, 153, 0.15);
+    --warn-soft: rgba(242, 179, 84, 0.15);
+    --danger-soft: rgba(242, 84, 91, 0.15);
+    --danger-strong: rgba(242, 84, 91, 0.24);
+
+    /* ── Espacement ───────────────────────────────────────────────────
+       Le rythme régulier est le premier signal de soin, avant la
+       couleur. Aucune marge ne doit être posée hors de cette échelle. */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+    --sp-7: 48px;
+
+    /* ── Typographie ──────────────────────────────────────────────────
+       Trois familles, chacune avec un rôle : les titres portent, le
+       corps se lit, la chasse fixe aligne les montants. */
+    --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+    /* Cinq niveaux, pas davantage. Au-delà, la hiérarchie cesse de se
+       lire et chaque écran réinvente sa propre échelle. */
+    --fs-display: 28px;
+    --fs-title: 18px;
+    --fs-subtitle: 14px;
+    --fs-body: 13px;
+    --fs-caption: 11px;
+
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    /* ── Formes ───────────────────────────────────────────────────── */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+
+    /* ── Mouvement ────────────────────────────────────────────────────
+       Deux durées suffisent. Rien ne bouge en permanence : une animation
+       perpétuelle sur un outil consulté dix fois par service devient une
+       gêne, pas un agrément. */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur-fast: 150ms;
+    --dur-slow: 250ms;
+}

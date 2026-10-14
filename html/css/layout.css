@@ -1,0 +1,470 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Mise en page
+
+   La tablette occupe une fenêtre fixe, pas une page qui défile : seule
+   la zone de contenu défile, via .scroll (déjà défini dans base.css).
+   Rien ici ne fixe une couleur, une marge ou un rayon en dur.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Cadre ────────────────────────────────────────────────────────────
+   `body` centre la tablette dans la fenêtre NUI ; .tablet-frame est le
+   châssis physique, #panel l'écran qui l'habille.
+
+   Ces règles portaient sur un conteneur #app que la nouvelle coquille n'a
+   plus : elles ne s'appliquaient donc à rien, et la tablette se collait en
+   haut à gauche. */
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-5);
+}
+
+body:not([hidden]) .tablet-frame {
+    animation: frame-in var(--dur-slow) var(--ease);
+}
+
+@keyframes frame-in {
+    from { opacity: 0; transform: scale(0.97) translateY(var(--sp-2)); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.tablet-frame {
+    width: min(1280px, 96vw);
+    height: min(860px, 92vh);
+    display: flex;
+    flex-direction: column;
+    padding: var(--sp-5) var(--sp-4) var(--sp-6);
+    background: linear-gradient(180deg, var(--panel-2), var(--bg));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xl);
+    position: relative;
+}
+
+.panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    position: relative;
+}
+
+/* ── Rail de navigation ──────────────────────────────────────────────
+   Huit onglets verticaux, une icône chacun. Colonne étroite et fixe :
+   c'est la seule partie de l'écran qui ne défile jamais. */
+
+.rail {
+    width: 78px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--sp-5) 0;
+    gap: var(--sp-2);
+    border-right: 1px solid var(--line);
+    position: relative;
+}
+
+.rail-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    margin-bottom: var(--sp-4);
+    background: linear-gradient(155deg, var(--accent-glow), var(--accent-softer));
+}
+
+.rail-tab {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--muted);
+    position: relative;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.rail-tab:hover { color: var(--text); background: var(--panel); }
+
+.rail-tab .n {
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.1px;
+}
+
+.rail-tab.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+/* Compteur (ex. nombre d'employés en attente) posé sur l'onglet — un
+   badge de plus n'apporterait rien, la place manque sur 52px. */
+.rail-count {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 100px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: var(--fw-bold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rail-tab.active .rail-count { background: var(--accent); color: var(--accent-ink); }
+
+.rail-spacer { flex: 1; }
+
+.rail-close {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.rail-close:hover {
+    background: var(--panel-2);
+    color: var(--text);
+    border-color: var(--accent-line);
+}
+
+/* ── Contenu ──────────────────────────────────────────────────────────
+   Un onglet à la fois. .view bascule par la classe .active ; le
+   défilement propre à chaque onglet reste porté par .scroll. */
+
+.content {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* La vue porte elle-meme la respiration de l'ecran.
+   
+   Un vocabulaire de disposition existe plus bas (.topbar, .grid-cards...),
+   mais aucun onglet ne s'en sert : ils empilent des .card directement ici.
+   Sans marge ni ecart, tout se retrouvait colle aux bords du panneau et colle
+   entre soi. Poser l'espacement sur le conteneur repare les huit onglets d'un
+   coup, et reste juste si l'un d'eux adopte les grilles plus tard. */
+.view {
+    flex-direction: column;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    min-height: 0;
+    flex: 1;
+    align-content: start;
+}
+
+/* Les cartes ne se compriment JAMAIS.
+   La vue défile (`.scroll`), mais elle est aussi un conteneur flex en
+   colonne : sans cette règle ses cartes tombent sous leur hauteur naturelle
+   (flex-shrink: 1 par défaut), la vue n'a plus rien à faire défiler, et le
+   contenu déborde puis se fait couper par son propre `overflow`. Sur une
+   fenêtre courte, la liste des employés s'arrêtait au milieu — sans barre de
+   défilement nulle part. */
+.view > * { flex-shrink: 0; }
+
+/* Le routeur masque par l'attribut `hidden`, jamais par une classe. Styler
+   `.view.active` laissait TOUTES les vues en display:none : le rail
+   repondait, mais la zone de contenu restait vide en permanence. */
+.view[hidden] { display: none; }
+
+.view:not([hidden]) {
+    display: flex;
+    animation: view-in var(--dur-slow) var(--ease);
+}
+
+@keyframes view-in {
+    from { opacity: 0; transform: translateY(var(--sp-1)); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── En-tête d'onglet ─────────────────────────────────────────────────
+   Titre à gauche, action ou compteur à droite. Fixe : ne défile pas
+   avec le contenu qui suit dans .scroll. */
+
+.topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-5) var(--sp-6) 0;
+    flex-shrink: 0;
+}
+
+.eyebrow {
+    font-size: 10.5px;
+    font-weight: var(--fw-bold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.topbar h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-top: 4px;
+    line-height: 1.1;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+}
+
+/* ── Barre de recherche / filtres ────────────────────────────────────
+   Sous l'en-tête, au-dessus de la zone qui défile. */
+
+.searchrow {
+    display: flex;
+    gap: var(--sp-2);
+    align-items: center;
+    padding: var(--sp-4) var(--sp-6) 0;
+    flex-shrink: 0;
+}
+
+.filters {
+    display: flex;
+    gap: var(--sp-2);
+    flex-wrap: nowrap;
+}
+
+/* ── Zone de contenu déroulante ──────────────────────────────────────
+   Seule partie de l'écran qui défile : .scroll (base.css) fournit déjà
+   overflow-y et la barre custom, on n'y touche pas ici. */
+
+.panel-body {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: var(--sp-5) var(--sp-6) var(--sp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+}
+
+/* ── Grilles d'onglet ─────────────────────────────────────────────────
+   auto-fit plutôt qu'un nombre de colonnes fixe : le nombre de tuiles
+   varie d'un onglet à l'autre (statistiques, cartes d'opération) sans
+   qu'on ait à redéclarer une grille par écran. */
+
+.grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--sp-3);
+}
+
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-4);
+}
+
+.grid-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: var(--sp-3) var(--sp-3);
+    align-items: end;
+}
+
+/* Regroupement large (ex. un champ de note) dans une grille de champs. */
+.grid-fields .span-2 { grid-column: span 2; }
+
+/* ── Liste conteneur ──────────────────────────────────────────────────
+   Enveloppe des .row (composants.css) : le cadre et le filetage entre
+   lignes vivent ici, pas sur la ligne elle-même, pour qu'une liste de
+   .row s'insère telle quelle dans une carte ou en pleine page. */
+
+.list {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.list:empty { display: none; }
+
+/* Liste encastrée dans une carte : le fond descend d'un cran pour se
+   lire comme un contenu de la carte plutôt qu'une carte de plus. */
+.list.inset {
+    background: var(--panel-2);
+    border-radius: var(--radius-sm);
+}
+
+/* ── Toasts et dialogue : positionnement de page ────────────────────
+   Les composants eux-mêmes (.toast, .overlay, .modal) sont définis
+   dans components.css ; ici, seulement où ils se placent sur l'écran. */
+
+.toast-host {
+    position: fixed;
+    top: 50%;
+    left: var(--sp-4);
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    z-index: 50;
+}
+
+/* ── Tableau de bord ──────────────────────────────────────────────────
+   Disposition propre à l'écran d'accueil. */
+
+.dash-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+}
+
+.dash-logo {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+}
+
+.dash-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Le logo est une adresse fournie par un patron : elle peut ne rien
+   charger. L'emplacement neutre garde alors sa forme au lieu de
+   s'effondrer sur un cadre vide. */
+.dash-logo.is-placeholder { font-size: 24px; }
+
+.dash-identity-text { min-width: 0; }
+
+.dash-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--sp-3);
+}
+
+/* Les graphiques prennent la largeur de leur carte ; la hauteur est fixée
+   pour que la page ne saute pas pendant leur construction. */
+.chart-host { min-height: 160px; }
+
+.dash-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+
+/* Une alerte ne s'affiche que lorsqu'il y a lieu : elle peut donc se
+   permettre d'être voyante, elle ne sera jamais du décor permanent. */
+.dash-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-body);
+    line-height: 1.45;
+}
+
+.dash-alert.is-warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+
+.dash-alert.is-danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+/* ── Panneau interne ──────────────────────────────────────────────────
+   L'élément porte un identifiant et aucune classe : sans cette règle il
+   n'avait AUCUN style, et le rail se retrouvait empilé au-dessus du
+   contenu au lieu d'être à côté. */
+#panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    background:
+        radial-gradient(70% 50% at 15% 0%, var(--accent-softer), transparent 60%),
+        var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+}
+
+/* Grain très léger : casse l'aplat parfait des grandes surfaces sombres,
+   qui donne un rendu plat sur les écrans peu contrastés. */
+#panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: radial-gradient(circle at 1px 1px, #fff 1px, transparent 0);
+    background-size: 3px 3px;
+}
+
+
+/* ── Ouverture de l'entreprise ────────────────────────────────────────
+   Posée dans la carte d'identité, à droite du nom : savoir si la boutique
+   est tenue passe avant savoir combien elle a encaissé. */
+
+.dash-open {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.open-pill {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+/* Vert ou rouge, et rien d'autre : un état binaire se lit de loin, il ne se
+   décode pas. */
+.open-pill.is-open { background: rgba(52, 211, 153, 0.16); color: #34d399; }
+.open-pill.is-closed { background: rgba(242, 84, 91, 0.16); color: #f2545b; }

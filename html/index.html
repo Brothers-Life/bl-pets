@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mes animaux</title>
+<!-- DA DU SERVEUR : memes feuilles, dans le meme ordre, que la tablette
+     entreprise (qbx_job_points) et les reglages du HUD (jg-hud/web/bl/tablet) :
+     css/ = tablette entreprise, bl/ = charte des tablettes de bl_ui
+     (html/tablet/theme.css, components.css, group.css).
+
+     COPIES LOCALES, A DESSEIN : bl_ui demarre APRES [standalone] (server.cfg),
+     ses feuilles ne sont donc pas encore servies quand cette page se charge.
+     Meme choix que jg-hud. A resynchroniser depuis bl_ui/html/tablet/ si la
+     charte change. -->
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="bl/theme.css">
+<link rel="stylesheet" href="bl/components.css">
+<link rel="stylesheet" href="bl/group.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<!-- Cache tant que le jeu n'a rien demande : une page NUI est montee en
+     permanence, elle ne doit rien peindre au repos. -->
+<body hidden>
+
+<div class="tablet-frame">
+<div id="panel">
+    <nav class="rail" id="rail"></nav>
+    <main class="content">
+        <header class="ghead">
+            <nav class="ghead-crumb" id="crumb" aria-label="Fil d'ariane"></nav>
+            <span class="ghead-tag" id="outTag" hidden></span>
+            <span class="ghead-clock" id="clock"></span>
+        </header>
+        <section class="view scroll" id="view"></section>
+    </main>
+</div>
+</div>
+
+<div id="toastHost" class="toast-host"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

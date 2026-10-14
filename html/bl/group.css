@@ -1,0 +1,1060 @@
+/* ============================================================================
+   DA 2026-10 DES TABLETTES DE GROUPE -- servie par bl_ui
+   ============================================================================
+   Maquette validee le 2026-10-04 (« Tablettes Patron & Illegal »). Chargee
+   par qbx_job_points (entreprise) et qbx_gang_points (organisation) APRES
+   tablet/theme.css et tablet/components.css : elle a le dernier mot.
+
+   POURQUOI UN FICHIER A PART et pas une retouche de theme.css : bl_mdt charge
+   aussi tablet/theme.css. Ce qui suit ne concerne QUE les deux tablettes de
+   groupe ; le MDT n'en voit rien.
+
+   Ce que ca change :
+     - la palette et les titres de la DA staff (qbx_jobs_admin/html/style.css :
+       fonds #0E1116 -> #212832 rapproches de bl_ui/html/staff/ui.css, accent
+       #F5A623, succes #3FB950, danger #E5534B, titres Bricolage Grotesque) ;
+     - la colonne d'onglets REDEVIENT VERTICALE, comme le MDT : icone +
+       libelle, empiles a gauche. theme.css l'avait couchee en barre
+       horizontale ; tabs.js sait desormais mesurer en hauteur (voir son
+       en-tete) et ne replie plus rien tant que tout tient ;
+     - une barre du haut commune (.ghead, posee par tablet/group.js) : fil
+       d'ariane « Organisation / Onglet » et heure.
+
+   L'organisation garde son accent violet (<html data-ui="gang">), avec des
+   surfaces teintees : on sait d'un coup d'oeil quelle tablette on a en main.
+
+   CEF FiveM = Chromium 103 : pas de :has(), pas d'imbrication, pas de
+   color-mix(), pas de backdrop-filter.
+   ========================================================================== */
+
+@font-face {
+    font-family: 'Bricolage Grotesque';
+    font-style: normal;
+    font-weight: 600 800;
+    font-display: swap;
+    src: url('../fonts/bricolage-grotesque-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Bricolage Grotesque';
+    font-style: normal;
+    font-weight: 600 800;
+    font-display: swap;
+    src: url('../fonts/bricolage-grotesque-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ── Jetons : entreprise ─────────────────────────────────────────────── */
+
+:root {
+    --bg: #0D1015;
+    --panel: #141821;
+    --panel-2: #1B202A;
+    --panel-3: #252B37;
+    --rail-bg: #10131A;
+    --bezel: #161A21;
+    --line: rgba(160, 174, 192, 0.09);
+    --line-strong: rgba(160, 174, 192, 0.17);
+
+    --text: #EAEEF3;
+    --muted: #8C97A6;
+    /* Plus clair que le --text-muted staff (#5B6675) : sur une tablette de
+       joueur, ce gris porte des sous-titres qu'on doit pouvoir lire. */
+    --muted-2: #7D8796;
+
+    --accent: #F5A623;
+    --accent-2: #FBBF24;
+    --accent-ink: #2A1B04;
+    --accent-softer: rgba(245, 166, 35, 0.06);
+    --accent-soft: rgba(245, 166, 35, 0.13);
+    --accent-glow: rgba(245, 166, 35, 0.22);
+    --accent-line: rgba(245, 166, 35, 0.38);
+
+    --ok: #3FB950;
+    --ok-soft: rgba(63, 185, 80, 0.14);
+    --warn: #E3B341;
+    --warn-soft: rgba(227, 179, 65, 0.14);
+    --danger: #E5534B;
+    --danger-soft: rgba(229, 83, 75, 0.14);
+    --danger-strong: rgba(229, 83, 75, 0.38);
+
+    --font-display: 'Bricolage Grotesque', 'Inter', sans-serif;
+    --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+}
+
+/* ── Jetons : organisation ───────────────────────────────────────────── */
+
+:root[data-ui="gang"] {
+    --bg: #0E0D14;
+    --panel: #15131D;
+    --panel-2: #1B1926;
+    --panel-3: #262236;
+    --rail-bg: #111019;
+    --bezel: #141218;
+    --line: rgba(167, 139, 250, 0.10);
+    --line-strong: rgba(167, 139, 250, 0.18);
+
+    --muted: #8B87A3;
+    --muted-2: #7D7896;
+
+    --accent: #A78BFA;
+    --accent-2: #C4B5FD;
+    --accent-ink: #160F2E;
+    --accent-softer: rgba(167, 139, 250, 0.06);
+    --accent-soft: rgba(167, 139, 250, 0.13);
+    --accent-glow: rgba(167, 139, 250, 0.24);
+    --accent-line: rgba(167, 139, 250, 0.40);
+}
+
+/* ── Chassis ─────────────────────────────────────────────────────────── */
+
+.tablet-frame {
+    background: var(--bezel);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Le chassis reprend la ligne : colonne d'onglets a gauche, ecran a droite. */
+#panel {
+    flex-direction: row;
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    overflow: hidden;
+}
+
+/* ── Colonne d'onglets ───────────────────────────────────────────────── */
+
+.rail {
+    /* 2026-10-11 : colonne agrandie (96 -> 118 px, icones 24 px, libelles
+       12,5 px) -- les tablettes ont grandi. Les pages qui testent la colonne
+       pour savoir si cette feuille est chargee (qbx_job_points, qbx_gang_points,
+       index.html) attendent plus de 100 px. */
+    width: 118px;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 14px 0 12px;
+    background: var(--rail-bg);
+    border-right: 1px solid var(--line);
+    border-bottom: none;
+    overflow: hidden;
+}
+
+.rail-mark {
+    width: 50px; height: 50px;
+    margin: 0 0 14px;
+    border-radius: 13px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 6px 18px var(--accent-glow);
+    flex-shrink: 0;
+}
+
+.rail-tab {
+    position: relative;
+    width: 100px; height: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 0 9px;
+    margin: 0;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 120ms var(--ease, ease), color 120ms var(--ease, ease);
+}
+.rail-tab svg { width: 24px; height: 24px; color: #A9B3C1; }
+:root[data-ui="gang"] .rail-tab svg { color: #ABA4C4; }
+.rail-tab .n {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+.rail-tab:hover { background: var(--panel); color: var(--text); }
+
+.rail-tab.active {
+    background: var(--accent-soft);
+    color: var(--text);
+    box-shadow: none;
+}
+.rail-tab.active svg { color: var(--accent); }
+.rail-tab.active .n { font-weight: 600; }
+/* Barre d'accent au bord de la colonne, comme le MDT. */
+.rail-tab.active::before {
+    content: '';
+    position: absolute;
+    left: -8px; top: 12px; bottom: 12px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+}
+
+/* Compteur : pastille sur le coin de l'icone. NEUTRE -- ces nombres
+   (effectif, grades) informent, ils n'alertent pas ; le rouge reste aux
+   alertes. */
+.rail-count {
+    position: absolute;
+    top: 3px; right: 12px;
+    min-width: 17px; height: 17px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: var(--panel-3);
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.rail-tab.active .rail-count { background: var(--accent); color: var(--accent-ink); }
+
+.rail-spacer { flex: 1; width: auto; height: auto; }
+
+.rail-close {
+    width: 44px; height: 44px;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--muted);
+}
+.rail-close:hover { color: var(--text); background: var(--panel); }
+.rail-close .n { display: none; }
+.rail-close::before { display: none; }
+
+/* Repli « Plus » : n'apparait que si la colonne est trop courte. Le menu
+   s'ouvre alors a DROITE de la colonne, plus en dessous d'une barre. */
+.more-btn {
+    width: 80px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 0 7px;
+    border: none;
+    border-radius: 12px;
+    font-size: 11px;
+    margin: 0;
+}
+.more-menu { top: auto; bottom: 0; right: auto; left: calc(100% + 10px); background: var(--panel-2); }
+
+/* ── Ecran ───────────────────────────────────────────────────────────── */
+
+.content { display: flex; flex-direction: column; min-width: 0; }
+
+/* Barre du haut commune (tablet/group.js) : le fil d'ariane dit ou l'on est,
+   comme dans les panneaux staff. */
+.ghead {
+    height: 56px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 22px;
+    border-bottom: 1px solid var(--line);
+}
+.ghead-crumb {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--muted-2);
+}
+.ghead-crumb span { padding: 3px 7px; border-radius: 7px; color: var(--muted); white-space: nowrap; }
+.ghead-crumb b {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ghead-tag {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font: 600 11px var(--font-mono);
+}
+.ghead-tag[hidden] { display: none; }
+.ghead-clock { font: 500 13px var(--font-mono); color: #C9D1DB; }
+
+/* Les vues occupent ce qui reste sous la barre. */
+.content > .view { flex: 1; min-height: 0; }
+.view { gap: 14px; padding: 20px 24px 24px; }
+
+/* ── Typographie ─────────────────────────────────────────────────────── */
+
+.topbar h1, .topbar h2,
+.card-title h3,
+#dashName,
+.modal-header h3, .modal-header h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+}
+.card-title h3 { font-size: 15.5px; font-weight: 700; }
+#dashName { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+
+/* ── Composants ──────────────────────────────────────────────────────── */
+
+.card { border-radius: var(--radius-lg); background: var(--panel); border: 1px solid var(--line); }
+
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 15px 16px; }
+.stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.stat-value { font-family: var(--font-mono); font-size: 23px; font-weight: 600; letter-spacing: -0.02em; }
+.stat-hint { font-size: 12px; color: var(--muted-2); }
+
+.row { border-radius: 11px; background: var(--panel-2); border: 1px solid var(--line); }
+.row-clickable:hover { border-color: var(--line-strong); background: var(--panel-3); }
+.row-value, .num { font-family: var(--font-mono); }
+
+.filters { background: var(--panel); border-color: var(--line); }
+.filters button.active, .filters .chip.active { background: var(--panel-3); }
+
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn-quiet { background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); }
+.btn-danger { background: var(--danger-soft); border: 1px solid var(--danger-strong); color: var(--danger); }
+
+.tag-ok { background: var(--ok-soft); border-color: rgba(63, 185, 80, 0.32); color: var(--ok); }
+.tag-warn { background: var(--warn-soft); border-color: rgba(227, 179, 65, 0.30); color: var(--warn); }
+.tag-danger { background: var(--danger-soft); border-color: var(--danger-strong); color: var(--danger); }
+
+.field-input, .field-select { background: var(--panel-2); border-color: var(--line-strong); }
+.field-input:focus, .field-select:focus { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-softer); }
+
+.meter { background: var(--panel-3); }
+.meter-fill { background: var(--accent); }
+
+.modal { background: var(--panel); border-color: var(--line-strong); }
+.toast { background: var(--panel-2); border-color: var(--line-strong); }
+
+/* ── Mouvement ───────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .rail-tab { transition: none; }
+}
+
+/* ── Ecrans de faible hauteur ────────────────────────────────────────
+   En 720p, dix onglets a 55 px ne tiennent pas dans la colonne : tabs.js
+   en repliait trois dans « Plus ». La colonne se tasse d'abord (verifie au
+   rendu le 2026-10-04 : 1280x720, plus aucun repli) ; « Plus » ne reste
+   qu'un dernier recours. */
+@media (max-height: 820px) {
+    .rail { gap: 1px; padding: 10px 0 8px; }
+    .rail-mark { width: 38px; height: 38px; margin: 0 0 8px; border-radius: 11px; }
+    .rail-tab { padding: 5px 0 4px; gap: 2px; border-radius: 10px; }
+    .rail-tab svg { width: 18px; height: 18px; }
+    .rail-tab.active::before { top: 9px; bottom: 9px; }
+    .rail-close { width: 38px; height: 38px; border-radius: 10px; }
+    .ghead { height: 48px; }
+}
+
+/* Le chevron du bouton « Plus » pointe vers le menu, qui s'ouvre a droite. */
+.more-btn svg { transform: rotate(-90deg); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   COMPOSANTS DE LA MAQUETTE (2026-10-04)
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── « A traiter » du tableau de bord (tab-dashboard.js, renderAlerts) ── */
+
+.dash-alerts {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 16px 18px;
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+.dash-alerts[hidden] { display: none; }
+.todo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.todo-head h3 { margin: 0; font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.todo-count {
+    padding: 2px 8px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 11.5px; font-weight: 600;
+}
+.todo-item {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 11px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+}
+button.todo-item { cursor: pointer; }
+button.todo-item:hover { border-color: var(--line-strong); background: var(--panel-3); }
+.todo-dot { width: 8px; height: 8px; border-radius: 4px; flex: none; background: var(--warn); }
+.todo-item.is-danger .todo-dot { background: var(--danger); }
+.todo-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-text b { font-size: 13px; font-weight: 600; }
+.todo-text span { font-size: 12px; color: var(--muted); }
+.todo-go { font-size: 12px; color: #A9B3C1; white-space: nowrap; }
+
+/* ── Fiche des droits individuels (tab-team.js) ────────────────────── */
+
+.mp-card { display: flex; flex-direction: column; gap: 12px; background: var(--panel); border-color: var(--accent-line); }
+.mp-card[hidden] { display: none; }
+.mp-head { display: flex; align-items: center; gap: 14px; }
+.mp-avatar {
+    width: 48px; height: 48px; flex: none;
+    border-radius: 14px;
+    background: var(--panel-2); border: 1px solid var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--accent);
+}
+.mp-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mp-who h3 { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.mp-note { margin: 0; }
+.mp-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.mp-group { padding: 12px 14px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.mp-group-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.mp-group-head h4 { margin: 0; font-family: var(--font-display); font-size: 14.5px; font-weight: 700; }
+.mp-count { font: 600 11px var(--font-mono); color: var(--accent); }
+.mp-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+}
+.mp-row:last-child { border-bottom: none; }
+.mp-row.is-changed { background: var(--accent-softer); border-radius: 8px; }
+.mp-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mp-label { font-size: 13px; font-weight: 600; }
+.mp-help { font-size: 11.5px; color: var(--muted-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-src { font-size: 11px; color: var(--muted-2); white-space: nowrap; }
+.mp-src.is-override { color: var(--accent); font-weight: 600; }
+
+/* Interrupteur : une case a cocher habillee, donc clavier et lecteur d'ecran
+   gratuits. */
+.mp-switch {
+    -webkit-appearance: none; appearance: none;
+    position: relative; flex: none;
+    width: 36px; height: 20px; margin: 0;
+    border-radius: 10px;
+    background: var(--panel-3);
+    cursor: pointer;
+    transition: background 120ms ease;
+}
+.mp-switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 8px; background: #fff;
+    transition: transform 140ms cubic-bezier(.34, 1.56, .64, 1);
+}
+.mp-switch:checked { background: var(--accent); }
+.mp-switch:checked::after { transform: translateX(16px); }
+.mp-switch:disabled { opacity: 0.4; cursor: not-allowed; }
+.mp-switch:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
+
+/* ── Barre d'enregistrement ────────────────────────────────────────── */
+
+.savebar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 10px 10px 16px;
+    border-radius: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+}
+.savebar.is-dirty { border-color: var(--accent-line); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
+.savebar-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--muted-2); flex: none; }
+.savebar.is-dirty .savebar-dot { background: var(--accent); }
+.savebar-text { flex: 1; font-size: 13px; color: var(--muted); }
+.savebar-text b { color: var(--text); }
+.savebar .btn:disabled, .savebar-footer .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Dans l'editeur de grades : le pied de la modale devient la barre. */
+.savebar-footer { display: flex; align-items: center; gap: 10px; }
+.savebar-footer .savebar-text { flex: 1; }
+.savebar-footer.is-dirty .savebar-text { color: var(--text); }
+
+@media (max-height: 820px) {
+    .mp-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PLUS DE FENETRES MODALES (2026-10-04)
+
+   Ce qui s'ouvrait en fenetre flottante, au-dessus d'un voile, s'ouvre
+   maintenant DANS l'ecran de la tablette, comme une page : meme logique que
+   les panneaux staff (bl_ui/html/staff/ui.js). La modale reste ou l'onglet
+   l'a posee dans le document -- son code y cherche ses champs -- : seul son
+   RENDU change. group.js lui ajoute « Retour », un niveau de fil d'ariane, et
+   fait d'Echap un retour plutot qu'une fermeture de la tablette.
+
+   Le positionnement vise la zone de contenu (.content, rendue relative ici),
+   sous la barre du haut. La vue qui defile reste `static` : une page ancree
+   a .content ne defile donc pas avec la liste qu'elle recouvre.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.content { position: relative; }
+.content > .view { position: static; }
+
+.overlay {
+    position: absolute;
+    top: 56px; left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 20px 24px 0;
+    background: var(--bg);
+    overflow-y: auto;
+    animation: page-in 180ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes page-in {
+    from { opacity: 0; transform: translateX(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* La modale devient la page : pleine largeur, sans cadre flottant. Les
+   largeurs et hauteurs posees EN LIGNE par les onglets (width: 520px,
+   max-height: 70vh) ne valent plus : d'ou les !important, cibles. */
+.overlay > .modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0;
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    animation: none;
+}
+
+.overlay .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 16px;
+    border-bottom: none;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+}
+
+.page-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 34px; padding: 0 12px 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    color: var(--text);
+    font: 600 12.5px var(--font-body);
+    letter-spacing: 0;
+    cursor: pointer;
+    flex: none;
+}
+.page-back:hover { background: var(--panel-2); border-color: var(--accent-line); }
+
+.overlay .modal-body {
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+/* Le pied reste visible en bas de l'ecran pendant qu'on fait defiler la page :
+   c'est la barre d'enregistrement. */
+.overlay .modal-footer {
+    position: sticky;
+    bottom: 0;
+    margin: 16px -24px 0;
+    padding: 12px 24px 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.overlay .modal-footer.savebar-footer { justify-content: flex-start; }
+
+/* Une simple confirmation n'a pas besoin de la hauteur d'une page : son corps
+   reste une carte, le pied suit juste dessous. */
+.overlay .modal-body:only-of-type { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .overlay { animation: none; }
+}
+
+@media (max-height: 820px) {
+    .overlay { top: 48px; }
+}
+
+/* Fil d ariane avec une page ouverte : l onglet redevient un relais. */
+.ghead-crumb b.is-parent { font-family: var(--font-body); font-size: 12.5px; font-weight: 500; color: var(--muted); padding: 3px 7px; }
+
+/* Barre de defilement des pages : fine et dans la palette, pas le gris clair
+   natif de CEF. */
+.overlay::-webkit-scrollbar { width: 6px; }
+.overlay::-webkit-scrollbar-track { background: transparent; }
+.overlay::-webkit-scrollbar-thumb { background: var(--panel-3); border-radius: 3px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ALIGNEMENT SUR LA MAQUETTE (2026-10-04)
+
+   Rendu compare a la maquette validee : memes elements, mais pas la meme
+   composition. On recompose SANS toucher au balisage des onglets (identique
+   cote entreprise et cote organisation) : grille a zones sur la vue du
+   tableau de bord, .grid2 rendue transparente (display: contents) pour que
+   ses deux cartes deviennent des cases de la grille.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tableau de bord ───────────────────────────────────────────────── */
+
+section[data-panel="dashboard"]:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    grid-auto-flow: row dense;
+    align-content: start;
+    gap: 14px;
+}
+section[data-panel="dashboard"] > * { grid-column: 1 / -1; min-width: 0; }
+section[data-panel="dashboard"] > .grid2 { display: contents; }
+
+/* Ordre de la maquette : identite, chiffres, puis graphique a gauche et
+   « A traiter » + « En direct » a droite, « Qui rapporte » en bas. */
+section[data-panel="dashboard"] > .dash-identity { order: 0; }
+section[data-panel="dashboard"] > .dash-tiles { order: 1; }
+section[data-panel="dashboard"] > .grid2 > .card:first-child { order: 2; grid-column: 1; grid-row: span 2; }
+section[data-panel="dashboard"] > .dash-alerts { order: 3; grid-column: 2; }
+section[data-panel="dashboard"] > .grid2 > .card:last-child { order: 4; grid-column: 2; }
+section[data-panel="dashboard"] > .card:last-child { order: 5; }
+
+/* Identite : a plat, comme l'en-tete d'une fiche -- pas une carte de plus. */
+section[data-panel="dashboard"] .dash-identity.card {
+    background: none;
+    border: none;
+    padding: 0;
+    gap: 16px;
+}
+section[data-panel="dashboard"] .dash-identity .dash-logo {
+    width: 54px; height: 54px;
+    border-radius: 15px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    font-size: 24px;
+}
+section[data-panel="dashboard"] .dash-identity h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* Les chiffres sur UNE ligne, quel que soit leur nombre (4 cote
+   organisation, 5 cote entreprise) : la tuile seule sur sa ligne venait de
+   l'auto-fit a 210 px minimum. */
+section[data-panel="dashboard"] .dash-tiles {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+/* Alertes de l'organisation (ancienne forme .dash-alert) : memes lignes que
+   « A traiter ». */
+.dash-alert {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 12px;
+    border-radius: 11px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--text);
+}
+.dash-alert.is-danger { border-color: var(--danger-strong); }
+.dash-alert > span:first-child { font-size: 13px; }
+
+/* ── Rail : pas de pastille « 0 » (group.js pose .is-zero) ──────────── */
+.rail-count.is-zero { display: none; }
+
+/* ── Equipe : registre a gauche, fiche a droite ────────────────────── */
+
+section[data-panel="team"] > .card.has-fiche {
+    display: grid;
+    grid-template-columns: minmax(0, 430px) minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 12px;
+    align-items: start;
+}
+section[data-panel="team"] > .card.has-fiche > * { grid-column: 1 / -1; }
+section[data-panel="team"] .team-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+section[data-panel="team"] > .card.has-fiche > .team-left { grid-column: 1; }
+section[data-panel="team"] > .card.has-fiche > #teamFiche {
+    grid-column: 2;
+    position: sticky;
+    top: 0;
+}
+
+/* Registre compact pendant que la fiche est ouverte : statut, nom, grade,
+   droits. Les colonnes de chiffres reviennent a la fermeture. */
+.has-fiche .team-table th:nth-child(n+4):nth-child(-n+7),
+.has-fiche .team-table td:nth-child(n+4):nth-child(-n+7),
+.has-fiche .team-table th:nth-child(9),
+.has-fiche .team-table td:nth-child(9) { display: none; }
+.has-fiche .team-table select { max-width: 130px; }
+.team-table tr.is-selected td { background: var(--accent-softer); }
+.team-table tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.has-fiche .mp-groups { grid-template-columns: minmax(0, 1fr); }
+
+/* ── Coffre et Operations (corrige le 2026-10-04) ──────────────────────
+   theme.css les pose en deux colonnes de « 50 % - 6 px », calcule pour un
+   ecart de 12 px. Cette feuille passe l'ecart des vues a 14 px : deux
+   cartes ne tenaient plus cote a cote et tout retombait en UNE colonne
+   etroite, la moitie droite vide. On remplace le calcul par une vraie
+   grille, insensible a l'ecart. */
+.view[data-panel="safe"]:not([hidden]),
+.view[data-panel="ops"]:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    align-content: start;
+}
+.view[data-panel="safe"] > *,
+.view[data-panel="ops"] > * { width: auto; min-width: 0; }
+
+/* Coffre : solde et mouvement a gauche, journal sur toute la hauteur a
+   droite -- on lit ce qu'on a, on agit, on verifie a cote. */
+.view[data-panel="safe"] > .card:last-child { grid-column: 2; grid-row: 1 / span 2; }
+.view[data-panel="safe"] > .card:first-child,
+.view[data-panel="safe"] > #safeMoveCard { grid-column: 1; }
+
+/* Mouvement : montant et motif sur une ligne, actions a droite. */
+#safeMoveCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 10px 12px;
+}
+#safeMoveCard > .card-head,
+#safeMoveCard > .row-sub,
+#safeMoveCard > .card-actions { grid-column: 1 / -1; }
+#safeMoveCard > .row-sub:empty { display: none; }
+
+/* Les actions d'une carte se rangent a droite, comme une barre de
+   formulaire -- plus de bouton isole a gauche avec un vide a cote. Les
+   actions d'en-tete (filtres, Homme/Femme) ne sont pas concernees. */
+.view[data-panel="safe"] .card > .card-actions,
+.view[data-panel="ops"] .card .card-actions:not(.card-head .card-actions) {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Operations : la note de service et le logo, chacun avec son bouton a
+   droite sur la meme ligne que son champ quand la largeur le permet. */
+.view[data-panel="ops"] #opsVehicleForm:not([hidden]) { display: flex; }
+.view[data-panel="ops"] #opsVehicleForm > .btn { margin-left: auto; }
+
+/* Operations : retour au FLUX a deux colonnes (et non la grille ci-dessus).
+   Verifie au rendu le 2026-10-04 : en grille, la carte Identite (zone de
+   texte + deux formulaires) se faisait recouvrir par la suivante -- le
+   defaut que theme.css decrivait deja. Le flux, lui, ne se chevauche pas ;
+   la largeur se calcule sur l'ecart REEL (14 px), plus sur 12 px. */
+.view[data-panel="ops"]:not([hidden]) {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+.view[data-panel="ops"] > * { width: calc((100% - 14px) / 2); flex: 0 0 auto; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   REFONTE DES ONGLETS (2026-10-04) -- au plus pres de la maquette
+   « Tablettes Patron & Illegal ». Tableau, Equipe et Grades ont ete reecrits
+   (qbx_job_points, et Grades cote organisation) ; ce bloc porte leur rendu.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Barre du haut : recherche, service, cloche ────────────────────── */
+.ghead-search {
+    display: flex; align-items: center; gap: 8px;
+    width: 250px; height: 34px; padding: 0 12px;
+    border-radius: 10px; background: var(--panel); border: 1px solid var(--line);
+    color: var(--muted-2);
+}
+.ghead-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: 400 12.5px var(--font-body); }
+.ghead-search:focus-within { border-color: var(--accent-line); }
+.ghead-service {
+    display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px;
+    border-radius: 999px; border: 1px solid rgba(63, 185, 80, 0.32); background: rgba(63, 185, 80, 0.10);
+    color: var(--ok); font: 600 12px var(--font-body); white-space: nowrap;
+}
+.ghead-service[hidden] { display: none; }
+.ghead-service i { width: 7px; height: 7px; border-radius: 4px; background: var(--ok); }
+.ghead-service.is-empty { border-color: var(--line-strong); background: var(--panel); color: var(--muted); }
+.ghead-service.is-empty i { background: var(--muted-2); }
+.ghead-bell {
+    position: relative; width: 34px; height: 34px; border-radius: 10px; border: 0;
+    background: transparent; color: #A9B3C1; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.ghead-bell:hover { background: var(--panel); color: var(--text); }
+.ghead-bell-dot {
+    position: absolute; top: 3px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+    border-radius: 8px; background: var(--danger); color: #fff; font: 700 9.5px var(--font-body);
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg);
+}
+.ghead-bell-dot[hidden] { display: none; }
+
+/* ── Rail : initiales en logo ──────────────────────────────────────── */
+.rail-mark.has-initials svg { display: none; }
+.rail-initials { font-family: var(--font-display); font-weight: 800; font-size: 15px; letter-spacing: -0.02em; }
+
+/* ── Cartes a plat (maquette) : plus de filet sous l'en-tete ───────── */
+.card { padding: 16px 18px; gap: 12px; }
+.card > .card-head { border-bottom: none; padding: 0; margin: 0; }
+.card-title p, .dash-card-head p { color: var(--muted); font-size: 12px; }
+
+/* ── Briques communes ──────────────────────────────────────────────── */
+.seg {
+    display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px;
+    background: var(--panel); border: 1px solid var(--line);
+}
+.seg button {
+    padding: 6px 12px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--muted); font: 500 12.5px var(--font-body); cursor: pointer; white-space: nowrap;
+}
+.seg button:hover { color: var(--text); }
+.seg button.is-active, .seg button[aria-pressed="true"] { background: var(--panel-3); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.seg-full { display: flex; }
+.seg-full button { flex: 1; }
+
+.avatar {
+    width: 32px; height: 32px; flex: none; border-radius: 10px;
+    background: var(--panel-2); border: 1px solid var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+    font: 700 11.5px var(--font-body); color: #C9D1DB;
+}
+.avatar-lg { width: 54px; height: 54px; border-radius: 15px; font: 800 19px var(--font-display); color: var(--accent); }
+
+.chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px;
+    background: rgba(160, 174, 192, 0.10); color: #A9B3C1; font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.chip i { width: 6px; height: 6px; border-radius: 3px; background: currentColor; }
+.chip-ok { background: var(--ok-soft); color: var(--ok); }
+.chip-warn { background: var(--warn-soft); color: var(--warn); }
+
+.kpi {
+    display: flex; flex-direction: column; gap: 6px; padding: 15px 16px;
+    border-radius: 14px; background: var(--panel); border: 1px solid var(--line); min-width: 0;
+}
+.kpi-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.kpi-value { font: 600 23px var(--font-mono); letter-spacing: -0.02em; color: #F3F5F8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-hint { font-size: 12px; color: var(--muted-2); }
+.kpi-hint.is-ok { color: var(--ok); }
+.kpi-hint.is-warn { color: var(--warn); }
+.kpi-hint.is-danger { color: var(--danger); }
+.kpi-sm { padding: 11px 13px; gap: 4px; border-radius: 12px; }
+.kpi-sm .kpi-value { font-size: 17px; }
+
+.icon-btn {
+    width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2);
+    color: var(--muted); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--line-strong); }
+
+.search-field {
+    display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+    border-radius: 10px; background: var(--panel); border: 1px solid var(--line); color: var(--muted-2);
+}
+.search-field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: 400 13px var(--font-body); }
+.search-field:focus-within { border-color: var(--accent-line); }
+
+/* ── Tableau de bord ───────────────────────────────────────────────── */
+section[data-panel="dashboard"]:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
+.dash-head { display: flex; align-items: center; gap: 16px; }
+.dash-head .dash-logo {
+    width: 54px; height: 54px; flex: none; border-radius: 15px; overflow: hidden;
+    background: var(--panel-2); border: 1px solid var(--line-strong);
+    display: flex; align-items: center; justify-content: center;
+    font: 800 19px var(--font-display); color: var(--accent);
+}
+.dash-head .dash-logo img { width: 100%; height: 100%; object-fit: cover; }
+.dash-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dash-title-row { display: flex; align-items: center; gap: 10px; }
+.dash-title-row h1 { margin: 0; font: 800 26px var(--font-display); letter-spacing: -0.02em; }
+.dash-meta { margin: 0; font-size: 13px; color: var(--muted); }
+.dash-notice { margin: 0; font-size: 12.5px; color: #C9D1DB; }
+.dash-notice[hidden] { display: none; }
+.dash-head-actions { display: flex; gap: 8px; }
+.open-pill { padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.open-pill.is-open { background: var(--ok-soft); color: var(--ok); }
+.open-pill.is-closed { background: var(--danger-soft); color: var(--danger); }
+
+.dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+
+.dash-main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.dash-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dash-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dash-card-head h3 { margin: 0; font: 700 16px var(--font-display); }
+.dash-card-head p { margin: 3px 0 0; }
+.dash-today { font: 600 12px var(--font-mono); color: var(--muted); white-space: nowrap; }
+
+.dash-chart-card { min-height: 300px; }
+.dash-bars { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 220px; }
+.dash-bars .bars { flex: 1; display: grid; gap: 8px; align-items: end; min-height: 200px; border-bottom: 1px solid var(--line); padding-top: 18px; }
+.bar-col { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; min-width: 0; }
+.bar-val { font: 500 10.5px var(--font-mono); color: var(--muted); white-space: nowrap; }
+.bar { width: 100%; max-width: 46px; border-radius: 7px 7px 3px 3px; background: #2A3140; transition: height 300ms ease; }
+:root[data-ui="gang"] .bar { background: #2A2638; }
+.bar.is-top { background: var(--accent); }
+.bar-labels { display: grid; gap: 8px; }
+.bar-labels span { text-align: center; font-size: 11px; color: var(--muted-2); white-space: nowrap; overflow: hidden; }
+
+.dash-level { cursor: pointer; padding: 12px 14px; gap: 8px; border-style: dashed; border-color: var(--line-strong); }
+.dash-level[hidden] { display: none; }
+.dash-level:hover { border-color: var(--accent-line); }
+.level-row { display: flex; justify-content: space-between; font-size: 12.5px; color: #A9B3C1; }
+.level-row b { font: 600 12.5px var(--font-mono); color: var(--accent); }
+.level-bar { height: 6px; border-radius: 3px; background: var(--panel-3); overflow: hidden; }
+.level-bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+
+.dash-duty { display: flex; flex-direction: column; gap: 4px; }
+.duty-row { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+.duty-row:last-child { border-bottom: none; }
+.duty-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.duty-who b { font-size: 13px; }
+.duty-who span { font-size: 11.5px; color: var(--muted-2); }
+
+/* ── Equipe ────────────────────────────────────────────────────────── */
+section[data-panel="team"]:not([hidden]) { display: block; padding: 0; }
+.team-wrap { display: grid; grid-template-columns: minmax(0, 470px) minmax(0, 1fr); height: 100%; min-height: 0; }
+.team-left {
+    display: flex; flex-direction: column; gap: 11px; padding: 18px 16px; min-height: 0; overflow-y: auto;
+    border-right: 1px solid var(--line);
+}
+.team-left-head { display: flex; align-items: center; gap: 10px; }
+.team-left-head h2 { flex: 1; margin: 0; font: 800 21px var(--font-display); letter-spacing: -0.02em; }
+.team-total { font: 500 13px var(--font-mono); color: var(--muted-2); margin-left: 4px; }
+.team-sortrow { display: flex; align-items: center; gap: 10px; }
+.team-sortrow .field-select { flex: 1; height: 32px; font-size: 12.5px; }
+.team-list { display: flex; flex-direction: column; gap: 2px; }
+.emp-row {
+    display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px;
+    border-radius: 11px; border: 1px solid transparent; background: transparent; color: var(--text);
+    font: inherit; text-align: left; cursor: pointer;
+}
+.emp-row:hover { background: var(--panel); }
+.emp-row.is-selected { background: var(--accent-softer); border-color: var(--accent-line); }
+.emp-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.emp-who b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.emp-who span { font-size: 11.5px; color: var(--muted-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.emp-go { color: var(--muted-2); flex: none; }
+.team-box { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.team-box[hidden] { display: none; }
+.team-box-actions, .team-limit-row { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.team-limit-row .field-input { flex: 1; }
+
+.team-right { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 20px 24px 18px; min-height: 0; overflow-y: auto; }
+.team-fiche-empty { margin: auto; }
+.fiche-head { display: flex; align-items: center; gap: 14px; }
+.fiche-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.fiche-who h2 { margin: 0; font: 800 23px var(--font-display); letter-spacing: -0.02em; }
+.fiche-who .row-sub { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fiche-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.fire-ask { font-size: 12.5px; color: var(--danger); }
+.fiche-figs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.fiche-body { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 12px; align-items: start; }
+.fiche-sec { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.fiche-sec h3 { margin: 0 0 4px; font: 700 15px var(--font-display); }
+.fiche-readonly { margin: 0; font-size: 13px; }
+.fiche-rights .mp-group-head { margin-top: 8px; }
+.grade-opt {
+    display: flex; align-items: center; gap: 10px; padding: 8px 11px; border-radius: 10px; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line);
+}
+.grade-opt.is-on { background: var(--accent-softer); border-color: var(--accent-line); }
+.grade-opt input { accent-color: var(--accent); margin: 0; }
+.grade-opt span { flex: 1; font-size: 13px; }
+.grade-opt.is-on span { font-weight: 700; }
+.grade-opt em { font: 500 11.5px var(--font-mono); font-style: normal; color: var(--muted-2); }
+.team-right > .savebar, .grades-right > .savebar { position: sticky; bottom: 0; margin-top: auto; }
+
+/* ── Grades : echelle + editeur ────────────────────────────────────── */
+section[data-panel="grades"]:not([hidden]) { display: block; padding: 0; }
+.grades-wrap { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); height: 100%; min-height: 0; }
+.grades-left { display: flex; flex-direction: column; gap: 10px; padding: 18px 16px; border-right: 1px solid var(--line); overflow-y: auto; }
+.grades-left > .row-sub { margin: 0; }
+.ladder { position: relative; display: flex; flex-direction: column; gap: 8px; padding-left: 18px; }
+.ladder::before { content: ""; position: absolute; left: 6px; top: 18px; bottom: 18px; width: 2px; border-radius: 1px; background: var(--panel-3); }
+.rung {
+    position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+    border-radius: 12px; background: var(--panel); border: 1px solid var(--line); cursor: pointer;
+}
+.rung:hover { border-color: var(--line-strong); }
+.rung.is-on { background: var(--accent-softer); border-color: var(--accent-line); }
+.rung-dot { position: absolute; left: -17px; width: 12px; height: 12px; border-radius: 6px; background: #4A5263; border: 2px solid var(--bg); }
+.rung.is-on .rung-dot { background: var(--accent); }
+.rung-rank {
+    width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--panel-2);
+    display: flex; align-items: center; justify-content: center; font: 700 12px var(--font-mono); color: var(--muted);
+}
+.rung.is-on .rung-rank { color: var(--accent); }
+.rung-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rung-text b { font-size: 13.5px; }
+.rung-text span { font-size: 11.5px; color: var(--muted-2); }
+.rung-move { display: flex; gap: 4px; }
+
+.grades-right { display: flex; flex-direction: column; gap: 16px; padding: 20px 24px 18px; overflow-y: auto; min-height: 0; }
+.grade-form { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.grade-name { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.grade-presets { display: flex; flex-direction: column; gap: 6px; }
+.grade-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+
+@media (max-height: 820px) {
+    .dash-chart-card { min-height: 240px; }
+    .dash-bars .bars { min-height: 150px; }
+    .fiche-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Retouches du rendu (2026-10-04) : aide de l'echelle sur plusieurs lignes,
+   et une marge sous le contenu pour qu'aucune ligne ne reste cachee derriere
+   la barre d'enregistrement collee en bas. */
+.grades-left > .row-sub, .fiche-rights > .row-sub { white-space: normal; }
+.fiche-body, .grade-groups { padding-bottom: 8px; }
+.team-right > .savebar, .grades-right > .savebar { box-shadow: 0 -10px 24px var(--bg); }
+
+/* Tableau de l'ORGANISATION (ancienne structure : .dash-identity, .grid2) :
+   le flux en colonne de la refonte ne doit pas aplatir sa .grid2 -- ses deux
+   cartes s'y ecrasaient (constate au rendu le 2026-10-04). On lui rend une
+   rangee souple, placee juste apres les chiffres. */
+section[data-panel="dashboard"] > .grid2 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    order: 2;
+}
+section[data-panel="dashboard"] > .grid2 > .card { flex-shrink: 0; }
