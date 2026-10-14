@@ -1,7 +1,7 @@
 --- bl_pets -- etat serveur, ordres, faim, nettoyage.
 ---
---- QUI FAIT FOI. Le client cree l'animal (une entite reseau, comme tout ped de
---- script) mais ne decide de rien : chaque ordre passe par PetAction, qui
+--- QUI FAIT FOI. Le serveur cree l'animal (voir handlers.call), le client en
+--- prend le controle pour l'animer mais ne decide de rien : chaque ordre passe par PetAction, qui
 --- revérifie le proprietaire (citizenid du joueur), l'etat de l'animal, la
 --- distance et l'inventaire. Le client n'execute qu'apres le feu vert du
 --- serveur, qui lui renvoie l'ordre par evenement -- un ordre donne depuis la
@@ -90,18 +90,21 @@ local function pushStats(src, entry)
     TriggerClientEvent('bl_pets:client:stats', src, entry.petId, entry.health, entry.hunger)
 end
 
---- Fait rentrer l'animal sorti de `src` : sauvegarde, suppression de l'entite,
---- nettoyage des index. Idempotent.
+--- Fait rentrer un animal sorti : sauvegarde, suppression de l'entite,
+--- nettoyage des index. Idempotent. Les index ne sont effaces que s'ils
+--- designent encore CETTE entree : la sauvegarde attend la base, et un nouvel
+--- appel a pu reserver la place entre-temps (handlers.call).
 ---@param src integer
+---@param entry table
 ---@param reason string
 ---@param opts table? { silent = true (joueur parti), stopping = true (arret ressource) }
-local function despawn(src, reason, opts)
-    local entry = active[src]
-    if not entry then return end
+local function despawnEntry(src, entry, reason, opts)
+    if not entry or entry.gone then return end
+    entry.gone = true
     opts = opts or {}
 
-    active[src] = nil
-    byPet[entry.petId] = nil
+    if active[src] == entry then active[src] = nil end
+    if byPet[entry.petId] == src then byPet[entry.petId] = nil end
 
     if not entry.pending then
         save(entry, not opts.stopping)
@@ -117,7 +120,10 @@ local function despawn(src, reason, opts)
     end
 end
 
-Pets.Despawn = despawn
+--- Fait rentrer l'animal sorti de `src`, s'il y en a un.
+local function despawn(src, reason, opts)
+    despawnEntry(src, active[src], reason, opts)
+end
 
 --- L'animal est mort en jeu : sante a 0 (donc « a soigner »), il reste visible
 --- quelques secondes puis disparait.
@@ -160,7 +166,7 @@ end
 
 -- API (contrat SPEC §10) -----------------------------------------------------------------
 
---- Liste des especes : { [species] = { label, model, kind, traits, kindLabel, traitLabels } }.
+--- Liste des especes : { [species] = { label, model, kind, kindLabel, traits, traitLabels, tricks, vehicle } }.
 --- Les libelles voyagent avec les cles : la boutique n'a pas a relire notre
 --- config.lua pour afficher « Fidèle » au lieu de « loyal ».
 function Pets.Species()
@@ -228,7 +234,7 @@ end
 
 ---@param citizenid string
 ---@param species string
----@param opts table? { source = 'premium'|'admin'|..., name = string?, traits = string[]? }
+---@param opts table? { source = 'premium'|'admin'|..., name = string?, traits = string[]?, ignoreLimit = boolean?, logActor = string?, logActorName = string? }
 ---@return integer? petId, string? err
 function Pets.GrantPet(citizenid, species, opts)
     opts = type(opts) == 'table' and opts or {}
@@ -238,7 +244,8 @@ function Pets.GrantPet(citizenid, species, opts)
     if not def then return nil, 'unknown_species' end
     if not Pets.AwaitReady(10000) then return nil, 'not_ready' end
 
-    if Pets.Db.countByOwner(citizenid) >= Config.MaxPetsPerCharacter then
+    -- ignoreLimit : don du staff qui depasse volontairement la limite.
+    if not opts.ignoreLimit and Pets.Db.countByOwner(citizenid) >= Config.MaxPetsPerCharacter then
         return nil, 'limit'
     end
 
@@ -266,6 +273,15 @@ function Pets.GrantPet(citizenid, species, opts)
         source = origin,
     })
     if not id then return nil, 'db' end
+
+    Pets.Db.log({
+        actor = opts.logActor or origin,
+        actor_name = opts.logActorName,
+        action = 'grant',
+        pet_id = id,
+        citizenid = citizenid,
+        details = { species = species, name = name, source = origin },
+    })
 
     -- Le proprietaire est en ligne : son menu se rafraichit s'il est ouvert.
     local player = exports.qbx_core:GetPlayerByCitizenId(citizenid)
@@ -301,21 +317,17 @@ local handlers = {}
 function handlers.call(src, pet)
     if pet.health <= Config.InjuredThreshold then return false, 'injured' end
 
-    local current = active[src]
-    if current then
-        if current.pending then return false, 'busy' end
-        if current.petId == pet.id then return false, 'already_out' end
-        -- Un seul animal a la fois : le precedent rentre.
-        despawn(src, 'swap')
+    local previous = active[src]
+    if previous then
+        if previous.pending then return false, 'busy' end
+        if previous.petId == pet.id then return false, 'already_out' end
     end
-
-    -- Un meme animal ne peut pas etre sorti par deux sessions (meme
-    -- citizenid reconnecte ailleurs, par exemple).
-    local holder = byPet[pet.id]
-    if holder then despawn(holder, 'swap') end
 
     local def = speciesOf(pet.species)
     if not def then return false, 'unknown_species' end
+
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return false, 'no_player' end
 
     local entry = {
         petId = pet.id,
@@ -329,19 +341,33 @@ function handlers.call(src, pet)
         pending = true,
         pendingSince = os.time(),
     }
+    -- Un meme animal ne peut pas etre sorti par deux sessions (meme
+    -- citizenid reconnecte ailleurs, par exemple).
+    local holder = byPet[pet.id]
+
+    -- Reserve AVANT tout ce qui attend (sauvegarde du precedent, creation du
+    -- ped) : un second appel pendant ce temps tombe sur `busy` au lieu de
+    -- creer un deuxieme ped que plus rien ne referencerait.
+    active[src] = entry
+    byPet[pet.id] = src
+
+    -- Un seul animal a la fois : le precedent rentre.
+    if previous then despawnEntry(src, previous, 'swap') end
+    if holder and holder ~= src then despawn(holder, 'swap') end
+
+    -- Le joueur a pu partir pendant ces sauvegardes.
+    if active[src] ~= entry then return false, 'spawn_failed' end
+    ped = GetPlayerPed(src)
+    if not ped or ped == 0 then
+        despawnEntry(src, entry, 'spawn_failed', { silent = true })
+        return false, 'no_player'
+    end
+
     -- LE SERVEUR CREE LE PED. Le bucket 0 est en lockdown `relaxed`
     -- (qbx:bucketLockdownMode) : « Only script-owned entities created by
     -- clients are blocked ». Un CreatePed reseau cote client y est refuse --
     -- le ped reste visible chez lui seul, puis disparait. Le client en prend
     -- ensuite le controle pour l'animer (bl_pets:client:spawn).
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return false, 'no_player' end
-
-    -- Reserve AVANT la creation (qui attend) : un second appel pendant ce
-    -- temps tombe sur `busy` au lieu de creer un deuxieme ped.
-    active[src] = entry
-    byPet[pet.id] = src
-
     local heading = GetEntityHeading(ped)
     local rad = math.rad(heading)
     local c = GetEntityCoords(ped)
@@ -353,10 +379,7 @@ function handlers.call(src, pet)
     local deadline = GetGameTimer() + 2000
     while not DoesEntityExist(entity) and GetGameTimer() < deadline do Wait(0) end
     if not DoesEntityExist(entity) then
-        if active[src] == entry then
-            active[src] = nil
-            byPet[pet.id] = nil
-        end
+        despawnEntry(src, entry, 'spawn_failed', { silent = true })
         return false, 'spawn_failed'
     end
 
@@ -529,6 +552,12 @@ function handlers.pet(src, pet)
     return true
 end
 
+--- Ordres qui ecrivent en base ou creent une entite : un par joueur toutes les
+--- Config.ActionCooldownMs, quel que soit l'animal (anti-boucle call/dismiss).
+local THROTTLED = { call = true, dismiss = true, rename = true }
+---@type table<integer, integer> [source] = GetGameTimer() du dernier ordre limite
+local lastThrottled = {}
+
 --- Point d'entree unique de TOUS les ordres (menu, ox_target, objets, boutique).
 ---@param source integer
 ---@param petId integer
@@ -549,6 +578,14 @@ function Pets.PetAction(source, petId, action, data)
     if not pet then return false, 'not_found' end
     if pet.citizenid ~= citizenid then return false, 'not_owner' end
     pet = withLive(pet)
+
+    if THROTTLED[action] then
+        local now = GetGameTimer()
+        if lastThrottled[src] and now - lastThrottled[src] < (Config.ActionCooldownMs or 1500) then
+            return false, 'cooldown'
+        end
+        lastThrottled[src] = now
+    end
 
     if ORDERS[action] then return handlers.order(src, pet, action) end
 
@@ -661,55 +698,100 @@ local function readHealth(entry, entity)
     if pct < entry.health then entry.health = pct end
 end
 
+--- Un pas du tic pour un animal sorti.
+local function tickEntry(src, entry, now)
+    if entry.pending then
+        if now - entry.pendingSince > Config.SpawnTimeoutSeconds then
+            despawnEntry(src, entry, 'spawn_failed', { silent = true })
+            notify(src, PetsShared.ErrorText('spawn_failed'), 'error')
+        end
+        return
+    end
+    if entry.deadSince then return end
+
+    local entity = entityOf(entry)
+    if entity == 0 then
+        despawnEntry(src, entry, 'lost')
+        return
+    end
+
+    readHealth(entry, entity)
+
+    local def = speciesOf(entry.species)
+    local loss = (def and def.hungerPerMinute or 1.0) * Config.TickSeconds / 60
+    entry.hunger = math.max(0, entry.hunger - loss)
+
+    if entry.hunger <= 0 and Config.StarvingHealthLoss > 0 then
+        entry.health = math.max(0, entry.health - Config.StarvingHealthLoss)
+        entry.healedAt = nil
+        TriggerClientEvent('bl_pets:client:setHealth', src, entry.petId, entry.health)
+    end
+
+    if entry.hunger < Config.HungryThreshold and not entry.hungryNotified then
+        entry.hungryNotified = true
+        notify(src, ('%s a faim.'):format(entry.name), 'warning')
+    end
+
+    if entry.health <= 0 then
+        onPetDeath(src)
+    else
+        save(entry, false)
+        pushStats(src, entry)
+    end
+end
+
 CreateThread(function()
     while true do
         Wait(Config.TickSeconds * 1000)
 
+        -- Copie d'abord : un despawn attend la base, et un `call` peut ajouter
+        -- une cle a `active` pendant ce temps -- `next` leverait alors en plein
+        -- parcours. Chaque animal sous pcall : une erreur sur l'un n'arrete
+        -- pas le tic pour tous.
+        local list = {}
+        for src, entry in pairs(active) do list[#list + 1] = { src, entry } end
+
         local now = os.time()
-        for src, entry in pairs(active) do
-            if entry.pending then
-                if now - entry.pendingSince > Config.SpawnTimeoutSeconds then
-                    despawn(src, 'spawn_failed', { silent = true })
-                    notify(src, PetsShared.ErrorText('spawn_failed'), 'error')
-                end
-            elseif not entry.deadSince then
-                local entity = entityOf(entry)
-                if entity == 0 then
-                    despawn(src, 'lost')
-                else
-                    readHealth(entry, entity)
-
-                    local def = speciesOf(entry.species)
-                    local loss = (def and def.hungerPerMinute or 1.0) * Config.TickSeconds / 60
-                    entry.hunger = math.max(0, entry.hunger - loss)
-
-                    if entry.hunger <= 0 and Config.StarvingHealthLoss > 0 then
-                        entry.health = math.max(0, entry.health - Config.StarvingHealthLoss)
-                        entry.healedAt = nil
-                        TriggerClientEvent('bl_pets:client:setHealth', src, entry.petId, entry.health)
-                    end
-
-                    if entry.hunger < Config.HungryThreshold and not entry.hungryNotified then
-                        entry.hungryNotified = true
-                        notify(src, ('%s a faim.'):format(entry.name), 'warning')
-                    end
-
-                    if entry.health <= 0 then
-                        onPetDeath(src)
-                    else
-                        save(entry, false)
-                        pushStats(src, entry)
-                    end
-                end
+        for i = 1, #list do
+            local src, entry = list[i][1], list[i][2]
+            if active[src] == entry then
+                local ok, err = pcall(tickEntry, src, entry, now)
+                if not ok then print(('^1[bl_pets] tic de l\'animal %s : %s^7'):format(entry.petId, tostring(err))) end
             end
         end
     end
 end)
 
+-- Panel staff ---------------------------------------------------------------------------
+-- server/admin.lua lit et pilote l'etat vivant par ces fonctions (les tables
+-- restent locales a ce fichier).
+
+Pets.Internal = {
+    active = function() return active end,
+    holderOf = function(petId) return byPet[petId] end,
+    entryOf = function(petId)
+        local src = byPet[petId]
+        return src and active[src] or nil, src
+    end,
+    despawnPet = function(petId, reason)
+        local src = byPet[petId]
+        if src then despawn(src, reason or 'admin') end
+    end,
+    entityOf = entityOf,
+    tagEntity = tagEntity,
+    pushStats = pushStats,
+    stateOf = stateOf,
+    withLive = withLive,
+    citizenIdOf = citizenIdOf,
+    notify = notify,
+}
+
 -- Nettoyage -----------------------------------------------------------------------------
 
 AddEventHandler('playerDropped', function()
-    despawn(source, 'dropped', { silent = true })
+    local src = source
+    lastThrottled[src] = nil
+    despawn(src, 'dropped', { silent = true })
 end)
 
 -- Changement de personnage / deconnexion du personnage (qbx_core).
@@ -723,8 +805,10 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    for src in pairs(active) do
-        despawn(src, 'stop', { silent = true, stopping = true })
+    local list = {}
+    for src in pairs(active) do list[#list + 1] = src end
+    for i = 1, #list do
+        despawn(list[i], 'stop', { silent = true, stopping = true })
     end
 end)
 
@@ -763,7 +847,11 @@ lib.addCommand('givepet', {
         return
     end
 
-    local id, err = Pets.GrantPet(citizenid, args.species, { source = 'admin' })
+    local id, err = Pets.GrantPet(citizenid, args.species, {
+        source = 'admin',
+        logActor = source > 0 and citizenIdOf(source) or 'console',
+        logActorName = source > 0 and GetPlayerName(source) or 'Console',
+    })
     if id then
         notify(source, ('Animal n°%d (%s) donné.'):format(id, args.species), 'success')
         notify(args.target, 'Vous avez un nouvel animal : /animaux', 'success')

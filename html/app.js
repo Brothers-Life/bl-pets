@@ -11,20 +11,39 @@
 
    Balisage : charte des tablettes (rail vertical, barre du haut .ghead) et
    mise en page « reglages de telephone » des reglages du HUD (.sx / .rw).
+
+   La meme page sert au panel staff (admin.js) : `body[data-mode]` dit qui
+   l'occupe, et chaque script ignore les clics quand ce n'est pas son tour.
+   Les outils communs (echappement, photos, icones) sont exposes dans
+   window.BLP pour admin.js.
    ══════════════════════════════════════════════════════════════════════ */
 
 (() => {
     const RES = 'bl_pets';
     const $ = (id) => document.getElementById(id);
 
-    const ICON = { dog: '🐕', cat: '🐈', wild: '🐺' };
-    const SPECIES_ICON = { puma: '🐆', panther: '🐆', pug: '🐶', westy: '🐶', poodle: '🐩', cat_black: '🐈‍⬛' };
-    const TRICK_ICON = { sit: '🪑', lie: '💤', beg: '🙏', speak: '🔊' };
-    const FOOD_ICON = { pet_wetfood: '🥫', pet_kibble: '🥣' };
+    // Icones au trait (24 x 24, couleur du texte). Les animaux, eux, ont
+    // leur photo : img/species/<espece>.jpg (voir petImg).
+    const svg = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"${extra}>${d}</svg>`;
+    const ICONS = {
+        home: svg('<path d="M4 11l8-6.5 8 6.5V20a1 1 0 01-1 1h-4.5v-6h-5v6H5a1 1 0 01-1-1v-9z"/>'),
+        close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+        paw: '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="10" rx="2.1" ry="2.7"/><ellipse cx="10" cy="6" rx="2.1" ry="2.8"/><ellipse cx="14.5" cy="6" rx="2.1" ry="2.8"/><ellipse cx="18.4" cy="10" rx="2.1" ry="2.7"/><path d="M12.2 11.2c2.6 0 5.4 3.6 5.4 6.2 0 1.9-1.4 2.6-2.8 2.6-1.1 0-1.7-.6-2.6-.6s-1.6.6-2.7.6c-1.4 0-2.7-.7-2.7-2.6 0-2.6 2.8-6.2 5.4-6.2z"/></svg>',
+        follow: svg('<path d="M5 12h13M13 6l6 6-6 6"/>'),
+        stay: svg('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>'),
+        pet: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/>'),
+        call: svg('<path d="M4 10v4h3l5 4V6L7 10H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/>'),
+        sit: svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+        lie: svg('<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>'),
+        beg: svg('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>'),
+        speak: svg('<path d="M4 10v4h3l5 4V6L7 10H4z"/><path d="M16 9.5a3.5 3.5 0 010 5"/>'),
+        food: svg('<path d="M3 11h18a9 9 0 01-18 0zM8 7c0-1.5 1-2 1-3.5M12 7c0-1.5 1-2 1-3.5M16 7c0-1.5 1-2 1-3.5"/>'),
+        kit: svg('<rect x="3.5" y="6.5" width="17" height="13" rx="2"/><path d="M9 6.5V4.5h6v2M12 10v6M9 13h6"/>'),
+    };
+    const TRICK_ICON = { sit: ICONS.sit, lie: ICONS.lie, beg: ICONS.beg, speak: ICONS.speak };
     const STATE = { out: ['Sorti', 'ok'], stored: ['À la maison', null], injured: ['À soigner', 'danger'] };
     const TABS = [['apercu', 'Aperçu'], ['ordres', 'Ordres'], ['soins', 'Soins'], ['identite', 'Identité']];
-    const HOME_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 11l8-6.5 8 6.5V20a1 1 0 01-1 1h-4.5v-6h-5v6H5a1 1 0 01-1-1v-9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
-    const CLOSE_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const isMine = () => document.body.dataset.mode !== 'admin';
 
     let model = { pets: [], max: 10, items: { food: [], heal: null }, rules: {} };
     let view = { page: 'home', petId: null, tab: 'apercu' };
@@ -54,7 +73,10 @@
         setTimeout(() => el.remove(), 2600);
     }
 
-    const icon = (p) => SPECIES_ICON[p.species] || ICON[p.kind] || '🐾';
+    // Photo d'une espece. Sans fichier (espece ajoutee sans photo), l'image se
+    // retire et la patte dessinee en fond de .ph reste visible.
+    const petImg = (species, cls = '') => `<span class="ph ${cls}">${ICONS.paw}<img src="img/species/${encodeURIComponent(species || '')}.jpg" alt="" loading="lazy" onerror="this.remove()"></span>`;
+    const icon = (p) => petImg(p.species);
     // Niveau d'affichage seulement : 50 XP par niveau (le serveur ne compte que l'XP).
     const level = (xp) => ({ n: Math.floor((xp || 0) / 50) + 1, pct: ((xp || 0) % 50) * 2 });
     const chip = (label, tone) => `<span class="chip ${tone ? `chip-${tone}` : ''}">${tone ? '<i></i>' : ''}${esc(label)}</span>`;
@@ -94,11 +116,11 @@
                 <span class="rail-dot ${esc(p.state)}"></span>
             </button>`).join('');
         $('rail').innerHTML = `
-            <div class="rail-mark">🐾</div>
-            <button type="button" class="rail-tab ${view.page === 'home' ? 'active' : ''}" data-home>${HOME_SVG}<span class="n">Accueil</span></button>
+            <div class="rail-mark">${ICONS.paw}</div>
+            <button type="button" class="rail-tab ${view.page === 'home' ? 'active' : ''}" data-home>${ICONS.home}<span class="n">Accueil</span></button>
             ${model.pets.length ? `<div class="rail-sep">Compagnons</div>${pets}` : ''}
             <div class="rail-spacer"></div>
-            <button type="button" class="rail-tab rail-close" data-close>${CLOSE_SVG}<span class="n">Fermer</span></button>`;
+            <button type="button" class="rail-tab rail-close" data-close>${ICONS.close}<span class="n">Fermer</span></button>`;
     }
 
     function renderHead() {
@@ -134,14 +156,17 @@
         const banner = starving.length
             ? `<div class="banner"><b>${starving.length === 1 ? `${esc(starving[0].name)} a faim` : `${starving.length} animaux ont faim`}</b>Un animal affamé suit au pas et refuse les tours.</div>`
             : '';
-        const rows = model.pets.map((p) => `
-            <button type="button" class="rw-link" data-pet="${p.id}">
-                <span class="rw-ic">${icon(p)}</span>
-                <span class="rw-t"><b>${esc(p.name)}</b><span>${esc(p.label)} · niveau ${level(p.xp).n}</span></span>
-                ${mini('Santé', p.health, injuredAt())}${mini('Satiété', p.hunger, hungryAt() - 1)}
-                ${stateChip(p)}<span class="chev">›</span>
+        const cards = model.pets.map((p) => `
+            <button type="button" class="pet-card ${p.state === 'out' ? 'is-out' : ''} ${p.state === 'injured' ? 'is-injured' : ''}" data-pet="${p.id}">
+                ${petImg(p.species, 'pet-card-ph')}
+                <span class="pet-card-state">${stateChip(p)}</span>
+                <span class="pet-card-body">
+                    <b>${esc(p.name)}</b>
+                    <span class="pet-card-sub">${esc(p.label)} · niveau ${level(p.xp).n}</span>
+                    <span class="pet-card-gauges">${mini('Santé', p.health, injuredAt())}${mini('Satiété', p.hunger, hungryAt() - 1)}</span>
+                </span>
             </button>`).join('');
-        return `${head}${kpis}${banner}${section('Mes compagnons', rows)}`;
+        return `${head}${kpis}${banner}<div class="sx"><h4>Mes compagnons</h4><div class="pet-cards">${cards}</div></div>`;
     }
 
     // ── Fiche ─────────────────────────────────────────────────────────────
@@ -155,8 +180,8 @@
         const tabs = TABS.map(([k, l]) => `<button type="button" class="${view.tab === k ? 'is-active' : ''}" data-tab="${k}">${l}</button>`).join('');
         const body = ({ apercu: tabApercu, ordres: tabOrdres, soins: tabSoins, identite: tabIdentite })[view.tab] || tabApercu;
 
-        return `<div class="pg-h">
-                <span class="pet-av">${icon(p)}</span>
+        return `<div class="pg-h pg-h-pet">
+                ${petImg(p.species, 'pet-av')}
                 <div class="pg-h-t"><h2>${esc(p.name)}</h2>
                     <p>${stateChip(p)} ${esc(p.label)} · ${esc(p.kindLabel)} · niveau ${level(p.xp).n}</p></div>
                 ${main}
@@ -195,15 +220,15 @@
                 : !out ? off
                 : p.inVehicle ? 'Pas en voiture'
                 : hungry(p) ? 'A trop faim' : '';
-            return tile(`trick:${t.key}`, t.label, TRICK_ICON[t.key] || '✨',
+            return tile(`trick:${t.key}`, t.label, TRICK_ICON[t.key] || ICONS.beg,
                 { disabled: !out || !t.known || hungry(p) || p.inVehicle, hint });
         }).join('');
         return section('Déplacement', `<div class="tiles">
-                ${tile('follow', 'Suivre', '👣', { on: out && p.mode === 'follow', disabled: !out, hint: off })}
-                ${tile('stay', 'Rester', '✋', { on: out && p.mode === 'stay', disabled: !out, hint: off })}
-                ${tile('pet', 'Caresser', '🤚', { disabled: !out, hint: off || '+1 XP' })}
-                ${out ? tile('dismiss', 'Rentrer', '🏠', { hint: 'À la maison' })
-                      : tile('call', 'Appeler', '📣', { disabled: injured, hint: injured ? 'À soigner' : 'Il vous rejoint' })}
+                ${tile('follow', 'Suivre', ICONS.follow, { on: out && p.mode === 'follow', disabled: !out, hint: off })}
+                ${tile('stay', 'Rester', ICONS.stay, { on: out && p.mode === 'stay', disabled: !out, hint: off })}
+                ${tile('pet', 'Caresser', ICONS.pet, { disabled: !out, hint: off || '+1 XP' })}
+                ${out ? tile('dismiss', 'Rentrer', ICONS.home, { hint: 'À la maison' })
+                      : tile('call', 'Appeler', ICONS.call, { disabled: injured, hint: injured ? 'À soigner' : 'Il vous rejoint' })}
             </div>`)
             + section('Tours', `<div class="tiles">${tricks}</div>`, hungry(p) ? 'Un animal affamé refuse les tours.' : null);
     }
@@ -213,7 +238,7 @@
         const injured = p.state === 'injured';
         const food = (model.items.food || []).map((it) => {
             const effect = [`+${it.hunger} % de satiété`, it.health ? `+${it.health} % de santé` : null].filter(Boolean).join(', ');
-            return `<div class="rw"><span class="rw-ic">${FOOD_ICON[it.name] || '🍖'}</span>
+            return `<div class="rw"><span class="rw-ic">${ICONS.food}</span>
                 <div class="rw-t"><b>${esc(it.label)}</b><span>${esc(effect)}</span></div>
                 <div class="rw-c"><span class="count">x${it.count}</span>
                 ${button('Nourrir', { disabled: !out || it.count === 0 || p.hunger >= 98, act: `feed:${it.name}` })}</div></div>`;
@@ -222,7 +247,7 @@
             out ? `À moins de ${rules().interact ?? 4} m de lui.` : 'Sortez votre animal pour le nourrir.');
 
         const kit = model.items.heal;
-        const heal = kit ? section('Soigner', `<div class="rw"><span class="rw-ic">🩹</span>
+        const heal = kit ? section('Soigner', `<div class="rw"><span class="rw-ic">${ICONS.kit}</span>
                 <div class="rw-t"><b>${esc(kit.label)}</b><span>Santé à ${kit.health} %</span></div>
                 <div class="rw-c"><span class="count">x${kit.count}</span>
                 ${button('Soigner', { tone: injured ? 'primary' : 'quiet', disabled: kit.count === 0 || p.health >= 100, act: 'heal' })}</div></div>`,
@@ -284,6 +309,7 @@
     }
 
     document.addEventListener('click', (e) => {
+        if (!isMine()) return;
         if (e.target.closest('[data-close]')) return post('close');
         const petBtn = e.target.closest('[data-pet]');
         if (petBtn) { view = { page: 'pet', petId: Number(petBtn.dataset.pet), tab: 'apercu' }; return render(); }
@@ -298,6 +324,7 @@
     });
 
     document.addEventListener('keydown', (e) => {
+        if (!isMine()) return;
         if (e.key === 'Escape') post('close');
         if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'nameInput') act('rename');
     });
@@ -309,6 +336,7 @@
             view = msg.focus && model.pets.some((p) => p.id === msg.focus)
                 ? { page: 'pet', petId: msg.focus, tab: 'apercu' }
                 : { page: 'home', petId: null, tab: 'apercu' };
+            document.body.dataset.mode = 'player';
             document.body.hidden = false;
             tickClock();
             clearInterval(clockTimer);
@@ -317,10 +345,12 @@
             render();
         } else if (msg.action === 'data') {
             model = msg.data || model;
-            if (!document.body.hidden) render();
+            if (!document.body.hidden && isMine()) render();
         } else if (msg.action === 'close') {
             document.body.hidden = true;
             clearInterval(clockTimer);
         }
     });
+
+    window.BLP = { esc, post, toast, petImg, ICONS, chip, mini, gauge, dateFr, tickClock };
 })();

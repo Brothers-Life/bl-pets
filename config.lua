@@ -35,6 +35,23 @@ Config.SpawnTimeoutSeconds = 20
 Config.InteractDistance = 4.0
 -- Delai entre deux caresses qui rapportent de l'experience.
 Config.PetCooldownSeconds = 30
+-- Delai minimum entre deux ordres « lourds » d'un meme joueur (appeler,
+-- rentrer, renommer) : chacun ecrit en base ou cree une entite.
+Config.ActionCooldownMs = 1500
+
+-- PANEL STAFF (/petadmin). La commande est reservee au groupe ci-dessous
+-- (ace `command.petadmin`, posee par ox_lib) ; chaque requete du panel
+-- revérifie ce droit cote serveur.
+Config.Admin = {
+    command = 'petadmin',
+    group = 'group.admin',
+    -- Lignes max renvoyees par une recherche (au-dela : affiner).
+    searchLimit = 500,
+    -- Taille d'une page de la liste des animaux.
+    pageSize = 25,
+    -- Entrees du journal affichees.
+    logLimit = 150,
+}
 
 Config.Follow = {
     -- Decalage par rapport au joueur (x = droite, y = devant).
@@ -77,7 +94,12 @@ Config.Kinds = {
     dog = 'Chien',
     cat = 'Chat',
     wild = 'Sauvage',
+    farm = 'Ferme',
+    bird = 'Oiseau',
 }
+
+-- Ordre d'affichage des types (tablette, panel staff).
+Config.KindOrder = { 'dog', 'cat', 'wild', 'farm', 'bird' }
 
 -- Traits decoratifs. Cles ASCII (identifiants), libelles en francais.
 Config.Traits = {
@@ -94,6 +116,12 @@ Config.Traits = {
     independent = 'Indépendant',
     proud = 'Fier',
     wild = 'Sauvage',
+    gentle = 'Doux',
+    clever = 'Malin',
+    noisy = 'Bruyant',
+    agile = 'Agile',
+    majestic = 'Majestueux',
+    sneaky = 'Rusé',
 }
 Config.TraitsPerPet = 2
 
@@ -142,6 +170,32 @@ local BIG_CAT = {
     lie = { scenario = 'WORLD_MOUNTAIN_LION_REST' },
 }
 
+-- Animaux sauvages et de ferme : pas d'assis ni de « faire le beau », mais
+-- les scenarios du jeu de base (brouter, fouiller, picorer). Le libelle du
+-- tour remplace celui de Config.TrickLabels (tablette et ox_target).
+-- A CONFIRMER EN JEU : comme pour les chiens, les scenarios sont ceux que le
+-- jeu pose dans le monde ; leur rendu sur un ped de script est a verifier.
+local function grazer(scenario, label)
+    return { lie = { scenario = scenario, label = label or 'Brouter' } }
+end
+
+local RABBIT = { lie = { scenario = 'WORLD_RABBIT_EATING', label = 'Grignoter' } }
+local RAT = { lie = { scenario = 'WORLD_RATS_EATING', label = 'Grignoter' } }
+local HEN = { lie = { scenario = 'WORLD_HEN_PECKING', label = 'Picorer' } }
+
+-- Oiseaux : « assis » = se poser, « couché » = picorer. Un oiseau suit le
+-- joueur au sol (TaskFollowToOffsetOfEntity) ; il peut s'envoler s'il est
+-- distance, puis il est replace par la teleportation douce.
+local function bird(stand, feed)
+    local t = {}
+    if stand then t.sit = { scenario = stand, label = 'Se poser' } end
+    if feed then t.lie = { scenario = feed, label = 'Picorer' } end
+    return t
+end
+
+-- Primates : aucun scenario ni animation de tour dans le jeu de base.
+local PRIMATE = {}
+
 -- VEHICULES. `vehicle = false` : l'animal ne monte jamais (il attend et
 -- rejoint le joueur a la descente). Sinon :
 --   classes  = liste blanche de classes (GetVehicleClass) ; nil = toutes sauf
@@ -167,6 +221,10 @@ local DOG_CAR = {
 local SMALL_CAR = { offset = vec3(0.0, 0.0, 0.15) }
 -- Un coyote dans un SUV, un tout-terrain ou une camionnette, pas dans une citadine.
 local WILD_CAR = { classes = { 2, 9, 12 }, offset = vec3(0.0, 0.0, 0.25) }
+-- Petits animaux (lapin, rat, oiseaux) : sur le siege, sans animation.
+local TINY_CAR = { offset = vec3(0.0, 0.0, 0.1) }
+-- Singes : partout sauf deux-roues, bateaux et aeronefs (regle par defaut).
+local PRIMATE_CAR = { offset = vec3(0.0, 0.0, 0.3) }
 
 -- ESPECES. La cle est l'identifiant (`blpet:<cle>` dans la boutique).
 --   hungerPerMinute : satiete perdue par minute SORTI (rentre, il ne perd rien) ;
@@ -242,6 +300,84 @@ Config.Species = {
         tricks = BIG_CAT, vehicle = false,
         traits = { 'wild', 'proud', 'calm', 'brave', 'independent' },
     },
+    deer = {
+        label = 'Cerf', model = 'a_c_deer', kind = 'wild', hungerPerMinute = 1.0,
+        tricks = grazer('WORLD_DEER_GRAZING'), vehicle = false,
+        traits = { 'wild', 'shy', 'majestic', 'calm', 'fast' },
+    },
+    boar = {
+        label = 'Sanglier', model = 'a_c_boar', kind = 'wild', hungerPerMinute = 1.3,
+        tricks = grazer('WORLD_BOAR_GRAZING', 'Fouiller'), vehicle = false,
+        traits = { 'wild', 'brave', 'greedy', 'noisy', 'independent' },
+    },
+    rabbit = {
+        label = 'Lapin', model = 'a_c_rabbit_01', kind = 'wild', hungerPerMinute = 0.5,
+        tricks = RABBIT, vehicle = TINY_CAR,
+        traits = { 'shy', 'cuddly', 'fast', 'curious', 'gentle' },
+    },
+    rat = {
+        label = 'Rat', model = 'a_c_rat', kind = 'wild', hungerPerMinute = 0.4,
+        tricks = RAT, vehicle = TINY_CAR,
+        traits = { 'clever', 'sneaky', 'curious', 'greedy', 'agile' },
+    },
+    chimp = {
+        label = 'Chimpanzé', model = 'a_c_chimp', kind = 'wild', hungerPerMinute = 1.1,
+        tricks = PRIMATE, vehicle = PRIMATE_CAR,
+        traits = { 'clever', 'playful', 'noisy', 'agile', 'curious' },
+    },
+    rhesus = {
+        label = 'Macaque rhésus', model = 'a_c_rhesus', kind = 'wild', hungerPerMinute = 0.9,
+        tricks = PRIMATE, vehicle = PRIMATE_CAR,
+        traits = { 'clever', 'sneaky', 'playful', 'agile', 'noisy' },
+    },
+
+    -- Ferme --------------------------------------------------------------------------
+    cow = {
+        label = 'Vache', model = 'a_c_cow', kind = 'farm', hungerPerMinute = 1.4,
+        tricks = grazer('WORLD_COW_GRAZING'), vehicle = false,
+        traits = { 'calm', 'gentle', 'lazy', 'greedy', 'loyal' },
+    },
+    pig = {
+        label = 'Cochon', model = 'a_c_pig', kind = 'farm', hungerPerMinute = 1.2,
+        tricks = grazer('WORLD_PIG_GRAZING', 'Fouiller'), vehicle = false,
+        traits = { 'greedy', 'clever', 'cuddly', 'lazy', 'noisy' },
+    },
+    hen = {
+        label = 'Poule', model = 'a_c_hen', kind = 'farm', hungerPerMinute = 0.5,
+        tricks = HEN, vehicle = TINY_CAR,
+        traits = { 'noisy', 'curious', 'greedy', 'shy', 'gentle' },
+    },
+
+    -- Oiseaux ------------------------------------------------------------------------
+    -- A CONFIRMER EN JEU : un oiseau de script peut s'envoler au lieu de suivre.
+    hawk = {
+        label = 'Faucon', model = 'a_c_chickenhawk', kind = 'bird', hungerPerMinute = 0.7,
+        tricks = bird('WORLD_CHICKENHAWK_STANDING', 'WORLD_CHICKENHAWK_FEEDING'), vehicle = TINY_CAR,
+        traits = { 'proud', 'majestic', 'loyal', 'fast', 'brave' },
+    },
+    crow = {
+        label = 'Corbeau', model = 'a_c_crow', kind = 'bird', hungerPerMinute = 0.5,
+        tricks = bird(nil, 'WORLD_CROW_FEEDING'), vehicle = TINY_CAR,
+        traits = { 'clever', 'sneaky', 'curious', 'noisy', 'independent' },
+    },
+    pigeon = {
+        label = 'Pigeon', model = 'a_c_pigeon', kind = 'bird', hungerPerMinute = 0.4,
+        tricks = bird('WORLD_PIGEON_STANDING', 'WORLD_PIGEON_FEEDING'), vehicle = TINY_CAR,
+        traits = { 'greedy', 'curious', 'calm', 'loyal', 'shy' },
+    },
+    seagull = {
+        label = 'Mouette', model = 'a_c_seagull', kind = 'bird', hungerPerMinute = 0.5,
+        tricks = bird('WORLD_SEAGULL_STANDING', 'WORLD_SEAGULL_FEEDING'), vehicle = TINY_CAR,
+        traits = { 'noisy', 'greedy', 'sneaky', 'brave', 'independent' },
+    },
+    cormorant = {
+        label = 'Cormoran', model = 'a_c_cormorant', kind = 'bird', hungerPerMinute = 0.6,
+        tricks = bird('WORLD_CORMORANT_STANDING', nil), vehicle = TINY_CAR,
+        traits = { 'calm', 'shy', 'proud', 'agile', 'independent' },
+    },
+
+    -- Non retenus : les animaux marins (dauphin, requins, baleines, raie,
+    -- poisson) meurent hors de l'eau ; Chop (a_c_chop) double le rottweiler.
 }
 
 -- Libelle de « parler » par type, quand le tour ne porte pas le sien.
@@ -249,4 +385,6 @@ Config.SpeakLabels = {
     dog = 'Aboyer',
     cat = 'Miauler',
     wild = 'Grogner',
+    farm = 'Crier',
+    bird = 'Chanter',
 }

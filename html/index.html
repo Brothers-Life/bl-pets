@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="bl/components.css">
 <link rel="stylesheet" href="bl/group.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
 </head>
 <!-- Cache tant que le jeu n'a rien demande : une page NUI est montee en
      permanence, elle ne doit rien peindre au repos. -->
@@ -41,6 +42,8 @@
 
 <div id="toastHost" class="toast-host"></div>
 
+<!-- app.js d'abord : il expose les outils communs (window.BLP) a admin.js. -->
 <script src="app.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>

@@ -8,9 +8,10 @@
 ---
 --- Signatures (NE PAS CHANGER, la boutique les appelle) :
 ---   GrantPet(citizenid, species, opts) -> petId|nil, err
----   GetPets(citizenid) -> { { id, species, name, traits, health, hunger, state } }
+---   GetPets(citizenid) -> { { id, species, name, traits, health, hunger, state, xp, label, kind, created_at } }
 ---   PetAction(source, petId, action, data) -> ok, err   (call, dismiss, rename, ...)
----   Species() -> { [species] = { label, model, kind = 'dog'|'cat'|'wild', kindLabel, traits, traitLabels = { [cle] = libelle } } }
+---   Species() -> { [species] = { label, model, kind = 'dog'|'cat'|'wild'|'farm'|'bird', kindLabel,
+---                                traits, traitLabels = { [cle] = libelle }, tricks, vehicle } }
 
 local function api(name)
     return Pets and Pets[name] or nil

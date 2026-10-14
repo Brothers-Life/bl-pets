@@ -4,7 +4,7 @@ lua54 'yes'
 
 name 'bl_pets'
 description 'bl_pets -- animaux de compagnie (appel, suivi, tours, soins, faim)'
-version '1.0.0'
+version '1.1.0'
 author 'Brothers Life'
 
 -- Contrat avec bl_premiumshop : SPEC §10 (bl_premiumshop/docs/SPEC.md),
@@ -12,7 +12,7 @@ author 'Brothers Life'
 --
 -- ox_target n'est PAS une dependance, a dessein : sans lui, la tablette
 -- /animaux reste complete. bl_ui non plus : la tablette (html/) est autonome,
--- seule sa police vient de bl_ui (voir l'en-tete de html/index.html).
+-- feuilles de style et polices comprises (copies locales, voir index.html).
 dependencies {
     'qbx_core',
     'ox_lib',
@@ -33,6 +33,8 @@ client_scripts {
     'client/nametag.lua',
     -- Tablette « Mes animaux » (remplace le menu bl_ui le 2026-10-11).
     'client/tablet.lua',
+    -- Panel staff /petadmin (meme page NUI que la tablette).
+    'client/admin.lua',
 }
 
 ui_page 'html/index.html'
@@ -41,6 +43,10 @@ files {
     'html/index.html',
     'html/style.css',
     'html/app.js',
+    'html/admin.js',
+    'html/admin.css',
+    -- Images des especes (captures du jeu, html/img/species/<cle>.jpg) ; sources : CREDITS.md.
+    'html/img/species/*.jpg',
     -- DA du serveur : copies locales des feuilles de tablette (voir index.html).
     'html/css/*.css',
     'html/bl/*.css',
@@ -51,6 +57,8 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/db.lua',
     'server/main.lua',
+    -- Panel staff (/petadmin) : apres main.lua, dont il lit Pets.Internal.
+    'server/admin.lua',
     -- EN DERNIER, et seul dans son fichier : voir son en-tete.
     'server/exports.lua',
 }

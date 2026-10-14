@@ -14,17 +14,22 @@
    hidden : sans cette regle, la tablette resterait affichee au repos. */
 body[hidden] { display: none !important; }
 
-/* Comme les reglages du HUD : plus petite que la tablette entreprise. */
-.tablet-frame { width: min(1080px, 92vw); height: min(700px, 84vh); }
+/* Agrandie le 2026-10-14 (1080 x 700 auparavant) : les photos des animaux
+   demandent de la place. Reste sous la tablette entreprise sur un 1080p. */
+.tablet-frame { width: min(1320px, 95vw); height: min(860px, 90vh); }
 
 /* ── Rail : marque et animaux ────────────────────────────────────────── */
 
 .rail { overflow-y: auto; scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
-.rail-mark { display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.rail-mark { display: flex; align-items: center; justify-content: center; color: var(--accent-ink); }
+.rail-mark svg { width: 22px; height: 22px; }
 .rail-tab { display: flex; cursor: pointer; }
-.rail-tab .ico { font-size: 22px; line-height: 24px; height: 24px; filter: grayscale(.35); }
-.rail-tab.active .ico { filter: none; }
+.rail-tab svg { width: 22px; height: 22px; }
+/* Photo de l'animal dans le rail : vignette ronde, grisee hors selection. */
+.rail-tab .ico { display: block; width: 32px; height: 32px; }
+.rail-tab .ico .ph { width: 32px; height: 32px; border-radius: 50%; filter: grayscale(.5); }
+.rail-tab.active .ico .ph { filter: none; box-shadow: 0 0 0 2px var(--accent); }
 .rail-tab .n { max-width: 92px; overflow: hidden; text-overflow: ellipsis; }
 .rail-sep { margin: 8px 10px 4px; padding-top: 10px; border-top: 1px solid var(--line); width: 80px;
     font: 800 9.5px var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted-2); text-align: center; }
@@ -42,7 +47,7 @@ body[hidden] { display: none !important; }
 /* ── Colonne de page (jg-hud, refonte 2026-10-07) ────────────────────── */
 
 .view { gap: 0; padding-top: 6px; }
-.view > * { max-width: 760px; width: 100%; margin-left: auto; margin-right: auto; }
+.view > * { max-width: 1000px; width: 100%; margin-left: auto; margin-right: auto; }
 .pg-h { display: flex; align-items: center; gap: 14px; padding: 6px 2px 16px; }
 .pg-h-t { flex: 1; min-width: 0; }
 .pg-h h2 { margin: 0; font: 800 24px/1.2 var(--font-display); letter-spacing: -.01em; }
@@ -62,13 +67,40 @@ body[hidden] { display: none !important; }
 .rw-link { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 14px; padding: 12px 14px; width: 100%; cursor: pointer; }
 .rw-link + .rw-link { border-top: 1px solid var(--line); }
 .rw-link:hover { background: var(--panel-3); }
-.rw-ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--accent-softer); font-size: 20px; flex: none; }
+.rw-ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-softer); color: var(--accent); flex: none; }
+.rw-ic svg { width: 22px; height: 22px; }
 .chev { color: var(--muted-2); font-size: 20px; }
 
-/* ── Avatar d'animal ─────────────────────────────────────────────────── */
+/* ── Photo d'animal ──────────────────────────────────────────────────── */
 
-.pet-av { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; flex: none;
-    background: var(--accent-soft); border: 1px solid var(--accent-line); }
+/* .ph : cadre de photo. La patte (svg) est dessous ; la photo la couvre, et
+   se retire d'elle-meme si le fichier manque (onerror dans app.js). */
+.ph { position: relative; display: block; overflow: hidden; flex: none; background: var(--panel-3); color: var(--muted-2); }
+.ph > svg { position: absolute; left: 50%; top: 50%; width: 46%; height: 46%; transform: translate(-50%, -50%); }
+.ph > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.rw-ic.ph, .rw-link .ph { width: 48px; height: 48px; border-radius: 12px; }
+
+.pet-av { width: 112px; height: 112px; border-radius: 22px; border: 1px solid var(--accent-line);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.pg-h-pet { gap: 20px; padding-bottom: 20px; }
+.pg-h-pet h2 { font-size: 30px; }
+
+/* Cartes de l'accueil : une photo par animal. */
+.pet-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.pet-card { all: unset; box-sizing: border-box; position: relative; display: flex; flex-direction: column; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    transition: border-color .15s var(--ease), transform .15s var(--ease); }
+.pet-card:hover { border-color: var(--accent-line); transform: translateY(-2px); }
+.pet-card.is-out { border-color: rgba(52, 211, 153, .45); }
+.pet-card.is-injured .pet-card-ph img { filter: grayscale(.6); }
+.pet-card-ph { width: 100%; height: 160px; }
+.pet-card-state { position: absolute; top: 10px; left: 10px; }
+.pet-card-state .chip { background: rgba(11, 13, 16, .78); }
+.pet-card-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 14px; }
+.pet-card-body > b { font: 800 17px/1.2 var(--font-display); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pet-card-sub { font-size: 12px; color: var(--muted); }
+.pet-card-gauges { display: flex; gap: 12px; margin-top: 8px; }
+.pet-card-gauges .mini { flex: 1; width: auto; }
 
 /* ── Chiffres ────────────────────────────────────────────────────────── */
 
@@ -77,7 +109,7 @@ body[hidden] { display: none !important; }
 /* ── Jauges ──────────────────────────────────────────────────────────── */
 
 .gauge { display: flex; align-items: center; gap: 10px; }
-.gauge i { display: block; width: 180px; height: 8px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
+.gauge i { display: block; width: 240px; height: 8px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
 .gauge u { display: block; height: 100%; border-radius: 4px; background: var(--ok); transition: width .4s var(--ease); }
 .gauge u.warn { background: var(--warn); }
 .gauge u.danger { background: var(--danger); }
@@ -99,15 +131,16 @@ body[hidden] { display: none !important; }
 
 /* ── Tuiles d'ordre ──────────────────────────────────────────────────── */
 
-.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px; }
 .tile { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
     padding: 14px 8px 12px; border-radius: 12px; background: var(--panel-3); border: 1px solid var(--line); text-align: center; }
 .tile:hover { border-color: var(--accent-line); }
 .tile.on { border-color: var(--accent); background: var(--accent-soft); }
 .tile[disabled] { opacity: .4; cursor: not-allowed; }
 .tile[disabled]:hover { border-color: var(--line); }
-.tile-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-softer); font-size: 18px; margin-bottom: 2px; }
-.tile b { font-size: 13px; }
+.tile-ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-softer); color: var(--accent); margin-bottom: 4px; }
+.tile-ic svg { width: 22px; height: 22px; }
+.tile b { font-size: 14px; }
 .tile span { font-size: 10.5px; color: var(--muted); min-height: 13px; }
 
 /* ── Divers ──────────────────────────────────────────────────────────── */
@@ -132,3 +165,7 @@ body[hidden] { display: none !important; }
 .toast { background: var(--panel-3); border: 1px solid var(--line-strong); border-left: 3px solid var(--accent); border-radius: var(--radius-md);
     padding: 10px 14px; font-size: var(--fs-caption); color: var(--text); }
 .toast.error { border-left-color: var(--danger); }
+
+/* Rail : un animal = sa photo, un peu plus grande que les icones. */
+.rail-tab[data-pet] { width: 62px; height: 62px; }
+.rail-tab[data-pet] .ico, .rail-tab[data-pet] .ico .ph { width: 36px; height: 36px; }
