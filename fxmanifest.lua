@@ -45,7 +45,7 @@ files {
     'html/app.js',
     'html/admin.js',
     'html/admin.css',
-    -- Photos des especes (html/img/species/<cle>.jpg) ; credits : CREDITS.md.
+    -- Images des especes (captures du jeu, html/img/species/<cle>.jpg) ; sources : CREDITS.md.
     'html/img/species/*.jpg',
     -- DA du serveur : copies locales des feuilles de tablette (voir index.html).
     'html/css/*.css',

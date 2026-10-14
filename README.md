@@ -55,7 +55,7 @@ Espèces (26), par type :
 
 Elles se règlent dans `config.lua` : modèle, tours permis, véhicule, vitesse de la faim et traits. Les animaux marins (dauphin, requins, baleines, raie, poisson) ne sont pas proposés : ils meurent hors de l'eau. Les oiseaux et les tours des nouvelles espèces (brouter, picorer...) sont **à confirmer en jeu**.
 
-Chaque espèce a sa photo dans `html/img/species/<clé>.jpg` (photos Wikimedia Commons sous licence libre, auteurs et licences dans `html/img/species/CREDITS.md`). Une espèce ajoutée sans photo affiche une patte à la place.
+Chaque espèce a son image dans `html/img/species/<clé>.jpg` : une capture du modèle en jeu (GTA V / GTA Online, sources dans `html/img/species/CREDITS.md`). Une espèce ajoutée sans image affiche une patte à la place.
 
 ## Panel staff (`/petadmin`)
 
