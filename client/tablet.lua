@@ -136,8 +136,14 @@ local function push()
 end
 PetTablet.Push = push
 
+function PetTablet.IsOpen()
+    return isOpen
+end
+
 function PetTablet.Open(petId)
     focusPetId = tonumber(petId)
+    -- Meme page NUI que le panel staff : une seule des deux a la fois.
+    if PetAdmin and PetAdmin.IsOpen() then PetAdmin.Close() end
     CreateThread(function()
         local payload = buildPayload()
         isOpen = true

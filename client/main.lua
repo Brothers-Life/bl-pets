@@ -1,6 +1,7 @@
 --- bl_pets -- l'animal sorti : apparition, suivi, vehicule, tours, disparition.
 ---
---- Le client CREE l'entite (ped reseau) et l'anime ; il ne decide de rien. Les
+--- Le serveur cree l'entite (ped reseau), le client en prend le controle et
+--- l'anime ; il ne decide de rien. Les
 --- ordres arrivent du serveur (`bl_pets:client:order`) apres sa verification,
 --- qu'ils viennent du menu, d'ox_target, d'un objet ou de la boutique.
 ---
@@ -427,6 +428,7 @@ local DESPAWN_MESSAGES = {
     dismiss = '%s rentre à la maison.',
     owner_dead = '%s est rentré à la maison.',
     lost = "%s s'est perdu, il est rentré à la maison.",
+    admin = '%s a été rentré à la maison par le staff.',
 }
 
 RegisterNetEvent('bl_pets:client:despawned', function(petId, reason)

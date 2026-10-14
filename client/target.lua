@@ -2,7 +2,7 @@
 --- posee sur l'entite locale par le client proprietaire, les autres joueurs
 --- ne la voient pas).
 ---
---- ox_target n'est pas une dependance dure : sans lui, le menu /animaux reste
+--- ox_target n'est pas une dependance dure : sans lui, la tablette /animaux reste
 --- le chemin complet.
 
 PetTarget = {}
@@ -129,10 +129,7 @@ local function options()
         trickOption('beg', 'fa-solid fa-star'),
     }
 
-    -- « Parler » : le libelle depend de l'espece (Aboyer / Hurler...), on le
-    -- fixe donc a la pose de l'option, qui est propre a cet animal.
-    local speak = trickOption('speak', 'fa-solid fa-volume-high')
-    list[#list + 1] = speak
+    list[#list + 1] = trickOption('speak', 'fa-solid fa-volume-high')
 
     list[#list + 1] = {
         name = 'bl_pets:dismiss',
@@ -147,7 +144,7 @@ local function options()
 end
 
 local NAMES = {
-    'bl_pets:pet', 'bl_pets:feed', 'bl_pets:heal', 'bl_pets:follow', 'bl_pets:stay',
+    'bl_pets:sheet', 'bl_pets:pet', 'bl_pets:feed', 'bl_pets:heal', 'bl_pets:follow', 'bl_pets:stay',
     'bl_pets:trick_sit', 'bl_pets:trick_lie', 'bl_pets:trick_beg', 'bl_pets:trick_speak',
     'bl_pets:dismiss',
 }
@@ -155,11 +152,12 @@ local NAMES = {
 ---@param pet table
 function PetTarget.add(pet)
     if not targetReady() then return end
+    -- Le libelle d'un tour depend de l'espece (Aboyer / Hurler, Brouter /
+    -- Picorer...) : on le fixe a la pose de l'option, propre a cet animal.
     local list = options()
     for i = 1, #list do
-        if list[i].name == 'bl_pets:trick_speak' then
-            list[i].label = PetsShared.TrickLabel(pet.species, 'speak')
-        end
+        local trick = list[i].name:match('^bl_pets:trick_(.+)$')
+        if trick then list[i].label = PetsShared.TrickLabel(pet.species, trick) end
     end
     pcall(function() exports.ox_target:addLocalEntity(pet.ped, list) end)
 end

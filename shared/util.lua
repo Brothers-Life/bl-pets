@@ -31,6 +31,12 @@ PetsShared.Errors = {
     unknown_action = 'Action inconnue.',
     spawn_failed = "Votre animal n'a pas pu venir.",
     db = 'Erreur de sauvegarde, réessayez.',
+    -- Panel staff.
+    forbidden = 'Réservé au staff.',
+    bad_value = 'Valeur invalide.',
+    no_target = 'Joueur ou citizenid introuvable.',
+    same_owner = 'Cet animal appartient déjà à ce joueur.',
+    error = 'Erreur serveur (voir la console).',
 }
 
 ---@param code string?
